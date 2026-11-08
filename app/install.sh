@@ -10,7 +10,8 @@ PORT="${AMIW_PORT:-8788}"
 NODE="$(command -v node)" || { echo "node is not installed." >&2; exit 1; }
 
 install -d -m 700 "$DATA"
-ENVF="$DATA/env"
+ENVF="$HOME/.am-i-working/env"
+install -d -m 700 "$HOME/.am-i-working"
 if [ ! -f "$ENVF" ]; then
   umask 077
   {
