@@ -117,8 +117,21 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 .kids { margin: 0 0 2px 4px; padding-left: 12px; border-left: 2px solid var(--green); }
 .kids .rw + .rw { border-top: 1px solid var(--border); }
 .detail { margin: 2px 0 6px; }
-.notein { width: 100%; box-sizing: border-box; resize: vertical; min-height: 84px; font: inherit; font-size: 14px; line-height: 1.5; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
-.notein:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
+.tb { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-bottom: 4px; }
+.tbb { font: inherit; font-size: 13px; min-width: 30px; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); line-height: 1.5; }
+.tbb:hover { background: var(--tile); color: var(--text-primary); }
+.sep { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
+.ned { box-sizing: border-box; width: 100%; min-height: 80px; max-height: 1600px; overflow: auto; resize: vertical; font-size: 14px; line-height: 1.55; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; }
+.ned:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
+.ned:empty::before { content: attr(data-ph); color: var(--text-muted); }
+.ned h3 { font-size: 15px; margin: 6px 0 2px; min-height: 0; display: block; }
+.ned ul, .ned ol { margin: 4px 0; padding-left: 22px; }
+.ned ul.todo { list-style: none; padding-left: 0; }
+.ned ul.todo li { position: relative; padding-left: 26px; margin: 3px 0; }
+.ned ul.todo li::before { content: ""; position: absolute; left: 2px; top: 4px; width: 15px; height: 15px; border: 1.5px solid var(--text-muted); border-radius: 4px; cursor: pointer; }
+.ned ul.todo li[data-done]::before { background: var(--green); border-color: var(--green); }
+.ned ul.todo li[data-done]::after { content: ""; position: absolute; left: 7px; top: 6px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.ned ul.todo li[data-done] { color: var(--text-muted); text-decoration: line-through; }
 .nt { font-size: 11px; color: var(--text-muted); border: 1px solid var(--border); border-radius: 5px; padding: 0 5px; margin-left: 4px; }
 .qtyl { display: inline-flex; align-items: center; gap: 3px; font-size: 13px; color: var(--text-secondary); }
 .qtyin { width: 52px; font: inherit; font-size: 14px; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--green); border-radius: 6px; padding: 3px 6px; }
@@ -280,7 +293,28 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 
   // activity list (wins only)
   var ICON_MOVE = '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1l3.2 3.6H9V6.2H7V4.6H4.8zM8 15l-3.2-3.6H7V9.8h2v1.6h2.2zM1.5 7.2h1.7v1.6H1.5zm3.4 0h1.7v1.6H4.9zm3.4 0H10v1.6H8.3zm3.4 0h1.7v1.6h-1.7z"/></svg>';
-  function matches(e, q) { var d = base[e.day].d; return !q || (fmt(d) + " " + FULL[d.getUTCMonth()] + " " + e.text + " " + (e.note || "")).toLowerCase().indexOf(q) !== -1; }
+  // rich notes: stored as sanitized HTML (whitelist), so pasted or tampered content cannot run anything
+  var ALLOW = { B: 1, STRONG: 1, I: 1, EM: 1, U: 1, UL: 1, OL: 1, LI: 1, BR: 1, DIV: 1, P: 1, H3: 1 }, lastH = 160;
+  try { var lh = Number(localStorage.getItem("amiw-noteH")); if (lh >= 80 && lh <= 1600) lastH = lh; } catch (x) {}
+  function cleanInto(node, out) {
+    node.childNodes.forEach(function (c) {
+      if (c.nodeType === 3) out.appendChild(document.createTextNode(c.nodeValue));
+      else if (c.nodeType === 1) {
+        var t = c.tagName; if (t === "SCRIPT" || t === "STYLE") return;
+        if (ALLOW[t]) {
+          var n = document.createElement(t.toLowerCase());
+          if (t === "UL" && c.classList.contains("todo")) n.className = "todo";
+          if (t === "LI" && c.getAttribute("data-done") === "1") n.setAttribute("data-done", "1");
+          cleanInto(c, n); out.appendChild(n);
+        } else cleanInto(c, out);
+      }
+    });
+  }
+  function sanitize(html) { var d = new DOMParser().parseFromString("<body>" + html + "</body>", "text/html"), o = document.createElement("div"); cleanInto(d.body, o); return o.innerHTML; }
+  function noteHtml(e) { var n = e.note || ""; return e.rich ? sanitize(n) : esc(n).replace(/\n/g, "<br>"); }
+  function notePlain(e) { var n = e.note || ""; return e.rich ? n.replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ") : n; }
+  function hasNote(e) { return notePlain(e).trim().length > 0; }
+  function matches(e, q) { var d = base[e.day].d; return !q || (fmt(d) + " " + FULL[d.getUTCMonth()] + " " + e.text + " " + notePlain(e)).toLowerCase().indexOf(q) !== -1; }
   function inDay(e) { return sel === null || e.day === sel || kidsOf(e.id).some(function (k) { return k.day === sel; }); }
   function visibleTop(q) { return entries.filter(function (e) { return !e.parent && inDay(e) && (matches(e, q) || kidsOf(e.id).some(function (k) { return matches(k, q); })); }); }
   function fullDate(d) { return ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][d.getUTCDay()] + " " + d.getUTCDate() + " " + FULL[d.getUTCMonth()] + " " + d.getUTCFullYear(); }
@@ -298,14 +332,23 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
         '<span class="btns"><button class="bt ok" data-act="save" data-id="' + e.id + '">Save</button><button class="bt no" data-act="ask" data-id="' + e.id + '">Delete</button><button class="bt" data-act="canceledit">Cancel</button></span>' +
         (confirmDel === e.id ? '<div class="confirm" role="alertdialog" aria-label="Confirm delete"><span>Delete this win?</span><button class="bt no solid" data-act="del" data-id="' + e.id + '">Yes, delete</button><button class="bt" data-act="cancel">Cancel</button></div>' : "");
     } else {
-      line = '<span class="t"' + (pickable ? "" : ' data-act="open" data-id="' + e.id + '" tabindex="0" role="button" aria-expanded="' + (openId === e.id) + '" title="Click to open the notes" style="cursor:pointer"') + '>' + esc(e.text) + (qty(e) > 1 ? ' <b class="qb">&times;' + qty(e) + '</b>' : "") + (e.note ? ' <span class="nt">notes</span>' : "") + '</span><span class="m">' + (e.parent ? esc(fmt(base[e.day].d)) : (e.time || "")) + '</span>' +
+      line = '<span class="t"' + (pickable ? "" : ' data-act="open" data-id="' + e.id + '" tabindex="0" role="button" aria-expanded="' + (openId === e.id) + '" title="Click to open the notes" style="cursor:pointer"') + '>' + esc(e.text) + (qty(e) > 1 ? ' <b class="qb">&times;' + qty(e) + '</b>' : "") + (hasNote(e) ? ' <span class="nt">notes</span>' : "") + '</span><span class="m">' + (e.parent ? esc(fmt(base[e.day].d)) : (e.time || "")) + '</span>' +
         (kids.length ? '<span class="note2">clubbed, counts as ' + (kids.reduce(function (t, k) { return t + qty(k); }, qty(e))) + ' wins</span>' : "") +
         '<span class="btns"><button class="bt ok" data-act="edit" data-id="' + e.id + '">Edit</button>' +
         '<button class="bt mv" draggable="true" data-act="menu" data-id="' + e.id + '" aria-label="Move this win. Drag it, or press for options" title="Drag to move, or press for options">' + ICON_MOVE + '</button></span>';
     }
     return '<div class="rw"><div class="tr" data-id="' + e.id + '"' + (pickable ? ' data-act="clubto" tabindex="0" role="button" style="cursor:pointer"' : "") + '>' + line + '</div>' +
       (menuFor === e.id ? menuHtml(e) : "") +
-      (openId === e.id && editing !== e.id ? '<div class="detail"><textarea class="notein" data-id="' + e.id + '" maxlength="4000" rows="4" placeholder="Notes, description, details. Saves as you type." aria-label="Notes for this win">' + esc(e.note || "") + '</textarea></div>' : "") +
+      (openId === e.id && editing !== e.id ? '<div class="detail"><div class="tb" role="toolbar" aria-label="Formatting">' +
+        '<button type="button" class="tbb" data-cmd="bold" title="Bold (Ctrl+B)" aria-label="Bold"><b>B</b></button>' +
+        '<button type="button" class="tbb" data-cmd="italic" title="Italic (Ctrl+I)" aria-label="Italic"><i>I</i></button>' +
+        '<button type="button" class="tbb" data-cmd="underline" title="Underline (Ctrl+U)" aria-label="Underline"><u>U</u></button>' +
+        '<button type="button" class="tbb" data-cmd="h" title="Heading" aria-label="Heading">H</button>' +
+        '<span class="sep"></span>' +
+        '<button type="button" class="tbb" data-cmd="ul" title="Bullet points" aria-label="Bullet list">&bull;&nbsp;List</button>' +
+        '<button type="button" class="tbb" data-cmd="ol" title="Numbered list" aria-label="Numbered list">1.&nbsp;List</button>' +
+        '<button type="button" class="tbb" data-cmd="todo" title="Checklist" aria-label="Checklist">&#9745;&nbsp;Check</button></div>' +
+        '<div class="ned" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Notes for this win" data-id="' + e.id + '" data-ph="Notes, description, details. Saves as you type. Drag the corner to resize, the size is remembered." style="height:' + (e.nh || lastH) + 'px">' + noteHtml(e) + '</div></div>' : "") +
       (kids.length ? '<div class="kids">' + kids.map(function (k) { return row(k, false); }).join("") + '</div>' : "") + '</div>';
   }
   function commitGroup(i) {
@@ -343,6 +386,19 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     }
     document.getElementById("feedList").innerHTML = html;
     var ed = document.querySelector(".editin"); if (ed) { ed.focus(); ed.setSelectionRange(ed.value.length, ed.value.length); }
+    attachRO();
+  }
+  var ro = null;
+  function attachRO() {
+    if (ro) { ro.disconnect(); ro = null; }
+    var ned = document.querySelector("#feedList .ned"); if (!ned || !window.ResizeObserver) return;
+    var first = true;
+    ro = new ResizeObserver(function () {
+      if (first) { first = false; return; }
+      var h = Math.round(ned.getBoundingClientRect().height), en = byId(Number(ned.dataset.id));
+      if (en && h >= 80 && h <= 1600) { en.nh = h; lastH = h; try { localStorage.setItem("amiw-noteH", String(h)); } catch (x) {} save(); }
+    });
+    ro.observe(ned);
   }
 
   var live = document.getElementById("live"), toast = document.getElementById("toast");
@@ -418,7 +474,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     var b = e.target.closest("[data-act]"); if (!b || b.disabled) return;
     if (b.dataset.act === "clubto" && e.target.closest("button")) return;
     var act = b.dataset.act, id = Number(b.dataset.id), i = Number(b.dataset.i);
-    if (act === "open") { openId = openId === id ? null : id; renderFeed(); var ta = fl.querySelector(".notein"); if (openId !== null && ta) ta.focus(); }
+    if (act === "open") { openId = openId === id ? null : id; renderFeed(); var ta = fl.querySelector(".ned"); if (openId !== null && ta) ta.focus(); }
     else if (act === "menu") { menuFor = menuFor === id ? null : id; renderFeed(); }
     else if (act === "closemenu") { menuFor = null; renderFeed(); }
     else if (act === "up") swap(id, -1); else if (act === "down") swap(id, 1);
@@ -435,9 +491,43 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     else if (act === "cstep") { var nv = Math.max(0, data[i].commits + Number(b.dataset.d)); if (nv === base[i].c0) delete overrides[i]; else overrides[i] = nv; afterChange(); }
     else if (act === "creset") { delete overrides[i]; afterChange(); }
   });
-  fl.addEventListener("input", function (e) {
-    if (!e.target.classList || !e.target.classList.contains("notein")) return;
-    var en = byId(Number(e.target.dataset.id)); if (en) { en.note = e.target.value.slice(0, 4000); save(); }
+  function curEl() { var sl = window.getSelection(), n = sl && sl.anchorNode; return n ? (n.nodeType === 1 ? n : n.parentNode) : null; }
+  function noteSaved(ed) {
+    var en = byId(Number(ed.dataset.id)); if (!en) return;
+    var html = sanitize(ed.innerHTML); en.note = html; en.rich = true;
+    if (!hasNote(en) && !/<li/.test(html)) { delete en.note; delete en.rich; }
+    save();
+  }
+  fl.addEventListener("input", function (e) { if (e.target.classList && e.target.classList.contains("ned")) noteSaved(e.target); });
+  fl.addEventListener("mousedown", function (e) { if (e.target.closest && e.target.closest(".tbb")) e.preventDefault(); });
+  fl.addEventListener("click", function (e) {
+    var b = e.target.closest ? e.target.closest(".tbb") : null, ed = fl.querySelector(".ned");
+    if (b && ed) {
+      if (document.activeElement !== ed) ed.focus();
+      var c = b.dataset.cmd, el = curEl(), ul = el && el.closest ? el.closest("ul") : null;
+      if (c === "bold" || c === "italic" || c === "underline") document.execCommand(c);
+      else if (c === "h") { var inH = el && el.closest && el.closest("h3"); document.execCommand("formatBlock", false, inH ? "div" : "h3"); }
+      else if (c === "ul") document.execCommand("insertUnorderedList");
+      else if (c === "ol") document.execCommand("insertOrderedList");
+      else if (c === "todo") {
+        if (ul && ul.classList.contains("todo")) document.execCommand("insertUnorderedList");
+        else if (ul) ul.classList.add("todo");
+        else { document.execCommand("insertUnorderedList"); var u2 = curEl() && curEl().closest("ul"); if (u2) u2.classList.add("todo"); }
+      }
+      noteSaved(ed); return;
+    }
+    var li = e.target;
+    if (li.tagName === "LI" && li.parentNode.classList && li.parentNode.classList.contains("todo") && e.offsetX < 26) {
+      if (li.getAttribute("data-done") === "1") li.removeAttribute("data-done"); else li.setAttribute("data-done", "1");
+      var ed2 = li.closest(".ned"); if (ed2) noteSaved(ed2);
+    }
+  });
+  fl.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && e.target.classList && e.target.classList.contains("ned")) setTimeout(function () { var el = curEl(), li = el && el.closest ? el.closest("li") : null; if (li && li.getAttribute("data-done")) { li.removeAttribute("data-done"); noteSaved(e.target); } }, 0);
+  });
+  fl.addEventListener("paste", function (e) {
+    if (!e.target.classList || !e.target.classList.contains("ned")) return;
+    e.preventDefault(); var t = (e.clipboardData || window.clipboardData).getData("text/plain"); document.execCommand("insertText", false, t);
   });
   fl.addEventListener("change", function (e) {
     if (!e.target.classList || !e.target.classList.contains("dateIn")) return;
