@@ -86,8 +86,6 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 .tmonth::after { content: ""; flex: 1; border-top: 1px solid var(--border); }
 .tg { position: relative; padding: 0 0 8px 18px; }
 .tg::before { content: ""; position: absolute; left: 3px; top: 0; bottom: 0; border-left: 2px solid var(--border); }
-.ic { display: none; position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--tile); display: grid; place-items: center; color: var(--text-secondary); }
-.ic svg { width: 13px; height: 13px; }
 .tg h3 { margin: 0; font-size: 14px; font-weight: 400; min-height: 26px; display: flex; align-items: center; justify-content: space-between; gap: 8px; border-radius: 6px; }
 .tg h3 b { font-weight: 600; }
 .tg h3.dz-day { outline: 2px dashed var(--green); outline-offset: 2px; }
@@ -269,8 +267,6 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   }
 
   // activity list (wins only)
-  var ICON_WIN = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 .5l2.2 4.6 5 .7-3.6 3.5.9 5L8 11.9 3.5 14.3l.9-5L.8 5.8l5-.7z"/></svg>';
-  var ICON_GIT = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 5a3 3 0 100 6 3 3 0 000-6zM1 7.25h3.5v1.5H1zm10.5 0H15v1.5h-3.5z"/></svg>';
   var ICON_MOVE = '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1l3.2 3.6H9V6.2H7V4.6H4.8zM8 15l-3.2-3.6H7V9.8h2v1.6h2.2zM1.5 7.2h1.7v1.6H1.5zm3.4 0h1.7v1.6H4.9zm3.4 0H10v1.6H8.3zm3.4 0h1.7v1.6h-1.7z"/></svg>';
   function matches(e, q) { var d = base[e.day].d; return !q || (fmt(d) + " " + FULL[d.getUTCMonth()] + " " + e.text).toLowerCase().indexOf(q) !== -1; }
   function inDay(e) { return sel === null || e.day === sel || kidsOf(e.id).some(function (k) { return k.day === sel; }); }
@@ -301,7 +297,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   }
   function commitGroup(i) {
     var x = data[i], o = overrides[i] !== undefined;
-    return '<div class="tg"><div class="ic">' + ICON_GIT + '</div><h3><span>Created <b>' + x.commits + '</b> ' + (x.commits === 1 ? "commit" : "commits") + '</span><span class="when">' + fullDate(x.d) + '</span></h3>' +
+    return '<div class="tg"><h3><span>Created <b>' + x.commits + '</b> ' + (x.commits === 1 ? "commit" : "commits") + '</span><span class="when">' + fullDate(x.d) + '</span></h3>' +
       '<div class="rw"><div class="tr"><span class="t">GitHub says ' + base[i].c0 + (o ? ', you set ' + x.commits : "") + '</span><span class="btns">' +
       '<button class="mini" data-act="cstep" data-i="' + i + '" data-d="-1" aria-label="Count one fewer commit on ' + esc(fmt(x.d)) + '"' + (x.commits === 0 ? " disabled" : "") + '>&minus;</button>' +
       '<button class="mini" data-act="cstep" data-i="' + i + '" data-d="1" aria-label="Count one more commit on ' + esc(fmt(x.d)) + '">+</button>' +
@@ -327,7 +323,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
         var d = base[g.day].d, key = d.getUTCFullYear() + "-" + d.getUTCMonth();
         if (key !== lastKey) { html += monthHead(d); lastKey = key; }
         var total = data[g.day].wins;
-        html += '<div class="tg"><div class="ic">' + ICON_WIN + '</div><h3 data-day="' + g.day + '"><span><b>' + total + '</b> ' + (total === 1 ? "win" : "wins") + '</span><span class="when">' + fullDate(d) + '</span></h3>' +
+        html += '<div class="tg"><h3 data-day="' + g.day + '"><span><b>' + total + '</b> ' + (total === 1 ? "win" : "wins") + '</span><span class="when">' + fullDate(d) + '</span></h3>' +
           g.items.map(function (e) { return row(e, clubFrom !== null && clubFrom !== e.id); }).join("") + '</div>';
       });
       if (!vis.length) html += '<p class="empty">' + (q ? "No match. Press Enter to add it as a win." : (sel === null ? "No wins yet. Type one above and press Enter." : "No wins on this day.")) + "</p>";
