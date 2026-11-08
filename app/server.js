@@ -39,10 +39,11 @@ function valid(o) {
 
 const COMMITS_TTL = Math.max(0.05, Number(process.env.COMMITS_TTL_HOURS || 24)) * 3600 * 1000;
 let commitCache = { at: 0, data: {} };
-async function commits() {
+async function commits(force) {
   const token = process.env.GITHUB_TOKEN, login = process.env.GITHUB_LOGIN;
   if (!token || !login) return {};
-  if (Date.now() - commitCache.at < COMMITS_TTL) return commitCache.data;
+  const age = Date.now() - commitCache.at;
+  if (age < (force ? 30 * 1000 : COMMITS_TTL)) return commitCache.data;
   const to = new Date(), from = new Date(Date.now() - 150 * 864e5);
   const query = "query($l:String!,$f:DateTime!,$t:DateTime!){user(login:$l){contributionsCollection(from:$f,to:$t){contributionCalendar{weeks{contributionDays{date contributionCount}}}}}}";
   try {
@@ -72,13 +73,13 @@ function send(res, code, body, type) {
 }
 
 const server = http.createServer(async (req, res) => {
-  const url = (req.url || "/").split("?")[0];
+  const full = req.url || "/", url = full.split("?")[0], force = /[?&]refresh=1(&|$)/.test(full);
   if (req.method === "GET" && (url === "/" || url === "/index.html")) return send(res, 200, PAGE, "text/html; charset=utf-8");
   if (url === "/healthz") return send(res, 200, '{"ok":true}');
   if (url.startsWith("/api/")) {
     if (req.headers["x-amiw"] !== "1") return send(res, 403, '{"error":"forbidden"}');
     if (url === "/api/state" && req.method === "GET") return send(res, 200, JSON.stringify(readState()));
-    if (url === "/api/commits" && req.method === "GET") return send(res, 200, JSON.stringify(await commits()));
+    if (url === "/api/commits" && req.method === "GET") return send(res, 200, JSON.stringify(await commits(force)));
     if (url === "/api/state" && req.method === "PUT") {
       let size = 0; const chunks = [];
       req.on("data", (c) => { size += c.length; if (size > MAX_BODY) { req.destroy(); } else chunks.push(c); });
@@ -86,7 +87,11 @@ const server = http.createServer(async (req, res) => {
         try {
           const o = JSON.parse(Buffer.concat(chunks).toString("utf8"));
           if (!valid(o)) return send(res, 400, '{"error":"bad state"}');
-          writeState(o); send(res, 200, '{"ok":true}');
+          // A save must be based on the latest version, or it could wipe a newer one from another device.
+          const cur = readState(), rev = Number(cur.rev) || 0;
+          if (Number(o.base) !== rev) return send(res, 409, JSON.stringify({ error: "stale", state: cur }));
+          delete o.base; o.rev = rev + 1;
+          writeState(o); send(res, 200, JSON.stringify({ ok: true, rev: o.rev }));
         } catch (e) { send(res, 400, '{"error":"bad json"}'); }
       });
       return;

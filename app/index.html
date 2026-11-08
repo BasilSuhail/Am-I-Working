@@ -149,6 +149,11 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 
 /* ---- left lists column ---- */
 .page { display: block; }
+.wrap { position: relative; }
+.rbtn { position: absolute; top: 22px; right: 16px; font: inherit; font-size: 13px; padding: 3px 12px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; }
+.rbtn:hover:not(:disabled) { background: var(--tile); color: var(--text-primary); }
+.rbtn:disabled { opacity: .5; cursor: default; }
+.rbtn:focus-visible { outline: 2px solid var(--text-primary); outline-offset: 2px; }
 .side { padding: 24px 16px 0; max-width: 760px; margin: 0 auto; }
 @media (min-width: 1100px) {
   .page { display: grid; grid-template-columns: 270px minmax(0, 760px); gap: 24px; justify-content: center; align-items: start; }
@@ -164,6 +169,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 .lb { font: inherit; font-size: 12px; padding: 1px 8px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; }
 .lb:hover { background: var(--tile); color: var(--text-primary); }
 .lb.ok { color: var(--green); border-color: var(--green); } .lb.no { color: var(--red); border-color: var(--red); }
+.li { flex-wrap: wrap; }
+.lidue { width: 100%; display: flex; gap: 6px; align-items: center; padding: 0 0 4px 0; }
+.lidue input { font: inherit; font-size: 12px; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 1px 4px; color-scheme: inherit; }
 .lb.solid { background: var(--red); color: #fff; }
 .li { display: flex; align-items: center; gap: 9px; padding: 4px 0; }
 .li .bx { width: 17px; height: 17px; border: 1.5px solid var(--text-muted); border-radius: 5px; flex: none; position: relative; cursor: pointer; background: transparent; padding: 0; }
@@ -197,6 +205,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 <div class="page">
 <aside class="side" id="side" aria-label="Lists"></aside>
 <div class="wrap">
+  <button class="rbtn" id="refreshBtn" type="button" title="Reload everything from the server and ask GitHub for the latest commits">Refresh</button>
   <h1>Daily record</h1>
 
   <div class="chart-scroll" id="chartScroll">
@@ -433,21 +442,30 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   }
 
   var live = document.getElementById("live"), toast = document.getElementById("toast");
-  var hidden = [], hiddenSkool = {}, ready = false, saveT = null, dirty = false, ss = document.getElementById("savestate"), listsState = { lists: null, nid: 10 };
+  var hidden = [], hiddenSkool = {}, ready = false, saveT = null, dirty = false, ss = document.getElementById("savestate"), listsState = { lists: null, nid: 10 }, rev = 0, inflight = null, again = false;
   function isoOf(i) { return base[i].d.toISOString().slice(0, 10); }
   function stateOut() {
     var out = hidden.slice(), sk = {};
     entries.forEach(function (e) { var c = Object.assign({}, e); c.date = isoOf(e.day); delete c.day; out.push(c); });
     Object.keys(hiddenSkool).forEach(function (k) { sk[k] = hiddenSkool[k]; });
     skoolC.forEach(function (v, i) { if (v > 0) sk[isoOf(i)] = v; });
-    return { v: 1, entries: out, skool: sk, nid: nid, lists: listsState.lists, lnid: listsState.nid };
+    return { v: 1, entries: out, skool: sk, nid: nid, lists: listsState.lists, lnid: listsState.nid, base: rev };
   }
   function setStatus(t, bad) { ss.textContent = t; ss.style.color = bad ? "var(--red)" : ""; }
+  function conflict(st) { applyState(st || {}); repaint(); document.dispatchEvent(new Event("amiw-ready")); setStatus("Another device saved first. Showing its version, please redo your last change.", true); }
   function flush() {
-    if (!ready) return; dirty = false;
-    fetch("/api/state", { method: "PUT", headers: { "Content-Type": "application/json", "X-AMIW": "1" }, body: JSON.stringify(stateOut()) })
-      .then(function (r) { if (!r.ok) throw new Error(r.status); setStatus(dirty ? "Saving" : "Saved on the server"); })
-      .catch(function () { dirty = true; setStatus("Could not save. Check the connection, then change something to retry.", true); });
+    if (!ready) return Promise.resolve();
+    if (inflight) { again = true; return inflight; }
+    dirty = false;
+    inflight = fetch("/api/state", { method: "PUT", headers: { "Content-Type": "application/json", "X-AMIW": "1" }, body: JSON.stringify(stateOut()) })
+      .then(function (r) {
+        if (r.status === 409) return r.json().then(function (j) { dirty = false; conflict(j.state); });
+        if (!r.ok) throw new Error(r.status);
+        return r.json().then(function (j) { rev = Number(j.rev) || rev; setStatus(dirty ? "Saving" : "Saved on the server"); });
+      })
+      .catch(function () { dirty = true; setStatus("Could not save. Check the connection, then change something to retry.", true); })
+      .then(function () { inflight = null; if (again) { again = false; if (dirty) return flush(); } });
+    return inflight;
   }
   function save() { if (!ready) return; dirty = true; setStatus("Saving"); clearTimeout(saveT); saveT = setTimeout(flush, 500); }
   window.addEventListener("pagehide", function () { if (ready && dirty) { try { fetch("/api/state", { method: "PUT", keepalive: true, headers: { "Content-Type": "application/json", "X-AMIW": "1" }, body: JSON.stringify(stateOut()) }); } catch (x) {} } });
@@ -654,6 +672,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
       if (idx >= 0 && idx < DAYS) skoolC[idx] = v; else hiddenSkool[k] = v;
     });
     listsState = { lists: Array.isArray(st.lists) ? st.lists : null, nid: Number.isInteger(st.lnid) ? st.lnid : 10 };
+    rev = Number(st.rev) || 0;
   }
   function repaint() { recompute(); for (var j = 0; j < DAYS; j++) paint(j); renderStats(); renderFeed(); }
   repaint();
@@ -665,6 +684,22 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     base.forEach(function (b, i) { var n = cm[isoOf(i)]; b.c0 = Number.isInteger(n) && n > 0 ? n : 0; });
     repaint();
   }).catch(function () { if (!ready) setStatus("Could not reach the server. Nothing will be saved until it loads.", true); });
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState !== "visible" || !ready || dirty || inflight) return;
+    fetch("/api/state", { headers: { "X-AMIW": "1" } }).then(function (r) { return r.ok ? r.json() : null; }).then(function (st) {
+      if (st && Number(st.rev) !== rev && !dirty && !inflight) { applyState(st); repaint(); document.dispatchEvent(new Event("amiw-ready")); setStatus("Updated from another device"); }
+    }).catch(function () {});
+  });
+  document.getElementById("refreshBtn").onclick = function () {
+    var btn = this; if (!ready) return; btn.disabled = true; btn.textContent = "Refreshing"; clearTimeout(saveT);
+    (dirty ? flush() : Promise.resolve()).then(function () { return fetch("/api/state", { headers: { "X-AMIW": "1" } }); })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (st) { applyState(st || {}); repaint(); document.dispatchEvent(new Event("amiw-ready")); return fetch("/api/commits?refresh=1", { headers: { "X-AMIW": "1" } }); })
+      .then(function (r) { return r.ok ? r.json() : {}; })
+      .then(function (cm) { base.forEach(function (b, i) { var n = cm[isoOf(i)]; b.c0 = Number.isInteger(n) && n > 0 ? n : 0; }); repaint(); setStatus("Refreshed " + hhmm()); })
+      .catch(function () { setStatus("Refresh failed. Check the connection.", true); })
+      .then(function () { btn.disabled = false; btn.textContent = "Refresh"; });
+  };
   window.AMIW = { autoWin: autoWin, removeAuto: removeAuto, getLists: function () { return listsState; }, saveLists: function (l) { listsState = l; save(); } };
   var sc = document.getElementById("chartScroll"); sc.scrollLeft = sc.scrollWidth;
 })();
@@ -677,7 +712,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   function seed() {
     return { nid: 10, lists: [
       { id: 1, type: "pin", text: "I turn messy data into systems people pay for, and I reach out to one person every day, even when I'm tired." },
-      { id: 2, type: "todo", title: "10 outreach messages by Thursday", due: "2026-11-19T18:00", items: [{ id: 1, text: "Pick the offer: automate manual Excel entry for finance teams", done: false }, { id: 2, text: "Write the message", done: false }, { id: 3, text: "Send 10 messages to strangers", done: false }] }
+      { id: 2, type: "todo", title: "Outreach", items: [{ id: 1, text: "Pick the offer: automate manual Excel entry for finance teams", done: false }, { id: 2, text: "Write the message", done: false }, { id: 3, text: "Send 10 messages to strangers", done: false, due: "2026-11-19T18:00" }] }
     ] };
   }
   function save() { if (st && window.AMIW) window.AMIW.saveLists(st); }
@@ -685,9 +720,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   function L(id) { return st.lists.filter(function (l) { return l.id === id; })[0]; }
   var MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"], WD = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
-  function dueText(l) {
-    if (!l.due) return "";
-    var t = new Date(l.due).getTime(); if (isNaN(t)) return "";
+  function dueText(due) {
+    var t = new Date(due).getTime(); if (!due || isNaN(t)) return "";
     var d = new Date(t), when = WD[d.getDay()] + " " + d.getDate() + " " + MON[d.getMonth()] + ", " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
     var ms = t - Date.now(), left;
     if (ms <= 0) return '<span class="due over">Overdue &middot; ' + when + "</span>";
@@ -715,8 +749,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     var k = nowIso();
     return l.items.map(function (i) {
       var on = l.type === "habits" ? !!(l.log[k] || {})[i.id] : !!i.done;
-      if (edit) return '<div class="li"><input type="text" data-a="itext" data-l="' + l.id + '" data-i="' + i.id + '" value="' + esc(i.text) + '" maxlength="100" aria-label="Edit item"><button class="x" data-a="idel" data-l="' + l.id + '" data-i="' + i.id + '" aria-label="Delete item ' + esc(i.text) + '">&#10005;</button></div>';
-      return '<div class="li' + (on ? " on" : "") + '"><button class="bx" data-a="tick" data-l="' + l.id + '" data-i="' + i.id + '" aria-pressed="' + on + '" aria-label="' + esc(i.text) + '"></button><span class="tx">' + esc(i.text) + "</span></div>";
+      if (edit) return '<div class="li"><input type="text" data-a="itext" data-l="' + l.id + '" data-i="' + i.id + '" value="' + esc(i.text) + '" maxlength="100" aria-label="Edit item"><button class="x" data-a="idel" data-l="' + l.id + '" data-i="' + i.id + '" aria-label="Delete item ' + esc(i.text) + '">&#10005;</button>' +
+        (l.type === "todo" ? '<div class="lidue"><input type="datetime-local" data-a="idue" data-l="' + l.id + '" data-i="' + i.id + '" value="' + esc(i.due || "") + '" aria-label="Timer or date for this item (optional)"><button class="lb" data-a="nodue" data-l="' + l.id + '" data-i="' + i.id + '">No timer</button></div>' : "") + "</div>";
+      return '<div class="li' + (on ? " on" : "") + '"><button class="bx" data-a="tick" data-l="' + l.id + '" data-i="' + i.id + '" aria-pressed="' + on + '" aria-label="' + esc(i.text) + '"></button><span class="tx">' + esc(i.text) + (l.type === "todo" && i.due && !on ? "<br>" + dueText(i.due) : "") + "</span></div>";
     }).join("");
   }
   function card(l) {
@@ -728,11 +763,10 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     var k = nowIso(), total = l.items.length, done = l.type === "habits" ? l.items.filter(function (i) { return (l.log[k] || {})[i.id]; }).length : l.items.filter(function (i) { return i.done; }).length;
     var sub = l.type === "habits" ? done + " of " + total + " today" + (streak(l) ? " &middot; streak " + streak(l) : "") : done + " of " + total + " done";
     h += '<div class="lc"><div class="lh"><span class="lt">' + esc(l.title) + "<small>" + sub + "</small></span>" + (edit ? '<button class="lb ok" data-a="done" data-l="' + l.id + '">Done</button>' : '<button class="lb" data-a="edit" data-l="' + l.id + '">Edit</button>') + "</div>";
-    if (l.type === "todo" && l.due && !edit) h += dueText(l);
     h += '<div class="meter" aria-hidden="true"><i style="width:' + (total ? done / total * 100 : 0) + '%"></i></div>';
     if (edit) {
       h += '<div class="lf"><label>Name<input type="text" data-a="title" data-l="' + l.id + '" value="' + esc(l.title) + '" maxlength="60"></label>' +
-        (l.type === "todo" ? '<label>Timer or date (optional)<span class="lrow"><input type="datetime-local" data-a="due" data-l="' + l.id + '" value="' + esc(l.due || "") + '"><button class="lb" data-a="nodue" data-l="' + l.id + '">Clear</button></span></label>' : "") + "</div>";
+'</div>';
     }
     h += itemRows(l, edit) + '<input class="li-add" data-a="add" data-l="' + l.id + '" placeholder="Add ' + (l.type === "habits" ? "a habit" : "an item") + ', press Enter" aria-label="Add and press Enter" maxlength="100">';
     if (l.type === "habits" && l.wins[k]) h += '<div class="wonote">All done. Posted as a win today.</div>';
@@ -746,13 +780,12 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   function newPanel() {
     if (!creating) return '<button class="newbtn" data-a="new">+ New list</button>';
     if (!creating.type) return '<div class="lc"><div class="lh"><span class="lt">What is it?</span><button class="lb" data-a="cancelnew">Cancel</button></div>' +
-      '<button class="kind" data-a="kind" data-k="todo">To-do list<small>Items to tick off. Add a timer or date if it has a deadline.</small></button>' +
+      '<button class="kind" data-a="kind" data-k="todo">To-do list<small>Things to tick off. Any item can have its own timer or date.</small></button>' +
       '<button class="kind" data-a="kind" data-k="pin">Pinned message<small>Stays at the top of this column.</small></button>' +
       '<button class="kind" data-a="kind" data-k="habits">Habit tracker<small>Fresh every day. Finish them all and it posts a win.</small></button></div>';
     var t = creating.type;
     return '<div class="lc"><div class="lh"><span class="lt">New ' + (t === "todo" ? "to-do list" : t === "pin" ? "pinned message" : "habit tracker") + '</span><button class="lb" data-a="cancelnew">Cancel</button></div><div class="lf">' +
       (t === "pin" ? '<label>Message<textarea id="nText" maxlength="400"></textarea></label>' : '<label>Name<input type="text" id="nTitle" maxlength="60"></label>') +
-      (t === "todo" ? '<label>Timer or date (optional)<input type="datetime-local" id="nDue"></label>' : "") +
       '</div><div class="lrow"><button class="lb ok" data-a="create">Create</button></div></div>';
   }
   function render() {
@@ -770,7 +803,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     } else if (a === "edit") { editId = l.id; askDel = null; }
     else if (a === "done") { editId = null; askDel = null; if (l && l.type === "habits") habitCheck(l); }
     else if (a === "idel" && l) { l.items = l.items.filter(function (i) { return i.id !== iid; }); if (l.type === "habits") habitCheck(l); }
-    else if (a === "nodue" && l) { delete l.due; }
+    else if (a === "nodue" && l) { l.items.forEach(function (i) { if (i.id === iid) delete i.due; }); }
     else if (a === "ask") askDel = l.id; else if (a === "nodel") askDel = null;
     else if (a === "del" && l) { st.lists = st.lists.filter(function (x) { return x.id !== l.id; }); editId = null; askDel = null; }
     else if (a === "new") creating = {}; else if (a === "cancelnew") creating = null;
@@ -778,7 +811,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     else if (a === "create") {
       var t = creating.type, nl = { id: st.nid++, type: t };
       if (t === "pin") { var tx = (document.getElementById("nText").value || "").trim(); if (!tx) return; nl.text = tx.slice(0, 400); }
-      else { var ti = (document.getElementById("nTitle").value || "").trim(); if (!ti) return; nl.title = ti.slice(0, 60); nl.items = []; if (t === "habits") { nl.log = {}; nl.wins = {}; } else { var dv = document.getElementById("nDue").value; if (dv) nl.due = dv; } }
+      else { var ti = (document.getElementById("nTitle").value || "").trim(); if (!ti) return; nl.title = ti.slice(0, 60); nl.items = []; if (t === "habits") { nl.log = {}; nl.wins = {}; } }
       st.lists.push(nl); creating = null; if (t !== "pin") editId = nl.id;
     } else return;
     save(); render();
@@ -796,15 +829,21 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     if (a === "itext") { l.items.forEach(function (i) { if (i.id === Number(t.dataset.i) && t.value.trim()) i.text = t.value.trim().slice(0, 100); }); }
     else if (a === "title" && t.value.trim()) l.title = t.value.trim().slice(0, 60);
     else if (a === "ptext" && t.value.trim()) l.text = t.value.trim().slice(0, 400);
-    else if (a === "due") { if (t.value) l.due = t.value; else delete l.due; }
+    else if (a === "idue") { l.items.forEach(function (i) { if (i.id === Number(t.dataset.i)) { if (t.value) i.due = t.value; else delete i.due; } }); }
     save();
   });
   setInterval(function () { if (!st) return; var ae = document.activeElement; if (editId === null && !creating && !(ae && side.contains(ae))) render(); }, 30000);
   function boot() {
     st = window.AMIW.getLists();
-    if (!Array.isArray(st.lists)) { var sd = seed(); st.lists = sd.lists; st.nid = sd.nid; }
+    var seeded = !Array.isArray(st.lists);
+    if (seeded) { var sd = seed(); st.lists = sd.lists; st.nid = sd.nid; }
     st.lists.forEach(function (l) { if (l.type === "habits") habitCheck(l); });
-    save(); render();
+    var migrated = false;
+    st.lists.forEach(function (l) {
+      if (l.type === "todo" && l.due) { l.items.unshift({ id: st.nid++, text: l.title, done: false, due: l.due }); delete l.due; migrated = true; }
+    });
+    if (seeded || migrated) save();
+    render();
   }
   document.addEventListener("amiw-ready", boot);
 })();
