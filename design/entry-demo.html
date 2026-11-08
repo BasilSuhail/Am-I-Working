@@ -7,21 +7,21 @@
 <style>
 :root {
   color-scheme: light;
-  --surface-1: #fcfcfb; --tile: #f3f2ef; --track: #e1e0db; --border: #d6d5cf;
+  --surface-1: #fcfcfb; --tile: #eeeeeb; --track: #e1e0db; --border: #d6d5cf;
   --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #7a7974;
   --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
 }
 @media (prefers-color-scheme: dark) {
   :root:where(:not([data-theme="light"])) {
     color-scheme: dark;
-    --surface-1: #1a1a19; --tile: #232322; --track: #353532; --border: #3a3a37;
+    --surface-1: #1a1a19; --tile: #2a2a28; --track: #353532; --border: #3a3a37;
     --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8f8e86;
     --s1: #3987e5; --s2: #d95926; --s3: #199e70;
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --surface-1: #1a1a19; --tile: #232322; --track: #353532; --border: #3a3a37;
+  --surface-1: #1a1a19; --tile: #2a2a28; --track: #353532; --border: #3a3a37;
   --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8f8e86;
   --s1: #3987e5; --s2: #d95926; --s3: #199e70;
 }
@@ -40,11 +40,11 @@ h1 { font-size: 20px; margin: 10px 0 18px; }
 .wd { display: grid; grid-template-rows: repeat(7, 22px); gap: 3px; width: 34px; flex: none; font-size: 12px; color: var(--text-muted); }
 .wd span { line-height: 22px; }
 .grid { flex: 1; display: grid; grid-auto-flow: column; grid-template-columns: repeat(20, minmax(0, 1fr)); grid-template-rows: repeat(7, 22px); gap: 3px; }
-.cell { border-radius: 4px; background: var(--tile); border: 1px solid var(--border); padding: 2px; display: grid; grid-template-rows: repeat(3, 1fr); gap: 2px; outline-offset: 2px; min-width: 0; }
+.cell { border-radius: 4px; background: var(--tile); padding: 3px; display: flex; flex-direction: column; justify-content: space-between; outline-offset: 2px; min-width: 0; }
 .cell:focus-visible { outline: 2px solid var(--text-primary); }
 .cell.today { box-shadow: 0 0 0 2px var(--text-primary); }
-.lane { background: var(--track); border-radius: 2px; overflow: hidden; }
-.fill { height: 100%; border-radius: 2px; width: 0; }
+.lane { height: 4px; background: transparent; border-radius: 2px; overflow: hidden; }
+.fill { height: 4px; border-radius: 2px; width: 0; }
 .fill.a { background: var(--s1); } .fill.b { background: var(--s2); } .fill.c { background: var(--s3); }
 .pop { animation: pop .5s ease; }
 @keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.18); } 100% { transform: scale(1); } }
@@ -83,15 +83,15 @@ h1 { font-size: 20px; margin: 10px 0 18px; }
       <div class="months" id="months"></div>
       <div class="body">
         <div class="wd"><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span><span></span></div>
-        <div class="grid" id="grid" role="img" aria-label="Activity grid, 20 weeks. Each day has three lanes: commits, Skool, wins."></div>
+        <div class="grid" id="grid" role="img" aria-label="Activity grid, 20 weeks. Each day has three bars: commits, Skool, wins."></div>
       </div>
     </div>
   </div>
   <div class="legend">
-    <span class="item"><i class="dot" style="background:var(--s1)"></i>Commits (top lane)</span>
-    <span class="item"><i class="dot" style="background:var(--s2)"></i>Skool (middle lane)</span>
-    <span class="item"><i class="dot" style="background:var(--s3)"></i>Wins (bottom lane)</span>
-    <span>Fuller lane means more. Outlined tile is today.</span>
+    <span class="item"><i class="dot" style="background:var(--s1)"></i>Commits (top bar)</span>
+    <span class="item"><i class="dot" style="background:var(--s2)"></i>Skool (middle bar)</span>
+    <span class="item"><i class="dot" style="background:var(--s3)"></i>Wins (bottom bar)</span>
+    <span>Longer bar means more. Outlined tile is today.</span>
   </div>
 
   <div class="stats" id="stats"></div>
