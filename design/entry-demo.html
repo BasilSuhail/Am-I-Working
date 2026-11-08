@@ -294,8 +294,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   // activity list (wins only)
   var ICON_MOVE = '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1l3.2 3.6H9V6.2H7V4.6H4.8zM8 15l-3.2-3.6H7V9.8h2v1.6h2.2zM1.5 7.2h1.7v1.6H1.5zm3.4 0h1.7v1.6H4.9zm3.4 0H10v1.6H8.3zm3.4 0h1.7v1.6h-1.7z"/></svg>';
   // rich notes: stored as sanitized HTML (whitelist), so pasted or tampered content cannot run anything
-  var ALLOW = { B: 1, STRONG: 1, I: 1, EM: 1, U: 1, UL: 1, OL: 1, LI: 1, BR: 1, DIV: 1, P: 1, H3: 1 }, lastH = 160;
-  try { var lh = Number(localStorage.getItem("amiw-noteH")); if (lh >= 80 && lh <= 1600) lastH = lh; } catch (x) {}
+  var DEFAULT_H = 160, ALLOW = { B: 1, STRONG: 1, I: 1, EM: 1, U: 1, UL: 1, OL: 1, LI: 1, BR: 1, DIV: 1, P: 1, H3: 1 };
   function cleanInto(node, out) {
     node.childNodes.forEach(function (c) {
       if (c.nodeType === 3) out.appendChild(document.createTextNode(c.nodeValue));
@@ -348,7 +347,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
         '<button type="button" class="tbb" data-cmd="ul" title="Bullet points" aria-label="Bullet list">&bull;&nbsp;List</button>' +
         '<button type="button" class="tbb" data-cmd="ol" title="Numbered list" aria-label="Numbered list">1.&nbsp;List</button>' +
         '<button type="button" class="tbb" data-cmd="todo" title="Checklist" aria-label="Checklist">&#9745;&nbsp;Check</button></div>' +
-        '<div class="ned" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Notes for this win" data-id="' + e.id + '" data-ph="Notes, description, details. Saves as you type. Drag the corner to resize, the size is remembered." style="height:' + (e.nh || lastH) + 'px">' + noteHtml(e) + '</div></div>' : "") +
+        '<div class="ned" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Notes for this win" data-id="' + e.id + '" data-ph="Notes, description, details. Saves as you type. Drag the corner to resize, only this win remembers the size." style="height:' + (e.nh || DEFAULT_H) + 'px">' + noteHtml(e) + '</div></div>' : "") +
       (kids.length ? '<div class="kids">' + kids.map(function (k) { return row(k, false); }).join("") + '</div>' : "") + '</div>';
   }
   function commitGroup(i) {
@@ -396,7 +395,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     ro = new ResizeObserver(function () {
       if (first) { first = false; return; }
       var h = Math.round(ned.getBoundingClientRect().height), en = byId(Number(ned.dataset.id));
-      if (en && h >= 80 && h <= 1600) { en.nh = h; lastH = h; try { localStorage.setItem("amiw-noteH", String(h)); } catch (x) {} save(); }
+      if (en && h >= 80 && h <= 1600) { en.nh = h; save(); }
     });
     ro.observe(ned);
   }
