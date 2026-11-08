@@ -116,6 +116,10 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 .menu input[type="date"] { font: inherit; font-size: 12px; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 1px 4px; color-scheme: inherit; }
 .kids { margin: 0 0 2px 4px; padding-left: 12px; border-left: 2px solid var(--green); }
 .kids .rw + .rw { border-top: 1px solid var(--border); }
+.detail { margin: 2px 0 6px; }
+.notein { width: 100%; box-sizing: border-box; resize: vertical; min-height: 84px; font: inherit; font-size: 14px; line-height: 1.5; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+.notein:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
+.nt { font-size: 11px; color: var(--text-muted); border: 1px solid var(--border); border-radius: 5px; padding: 0 5px; margin-left: 4px; }
 .qtyl { display: inline-flex; align-items: center; gap: 3px; font-size: 13px; color: var(--text-secondary); }
 .qtyin { width: 52px; font: inherit; font-size: 14px; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--green); border-radius: 6px; padding: 3px 6px; }
 .qb { color: var(--green); font-weight: 600; }
@@ -190,7 +194,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   }
   var SAMPLE = ["Sent my first 3 outreach messages", "Friend replied, wants to talk about his Excel work", "Prospect list reached 30 names", "Tested the message on 3 people", "Booked an intro call", "Finished the Skool niche lesson", "Posted my baseline in the community", "Shipped the tracker demo"];
   var nid = 1, entries = [], overrides = {}, skoolC = base.map(function (b) { return b.s0; });
-  var sel = null, flt = "all", editing = null, menuFor = null, clubFrom = null, confirmDel = null, undoSnap = null, toastT = null;
+  var sel = null, flt = "all", editing = null, openId = null, menuFor = null, clubFrom = null, confirmDel = null, undoSnap = null, toastT = null;
   function mk(day, text, time) { return { id: nid++, kind: "win", day: day, text: text, time: time, parent: null }; }
   (function seed() {
     var k = 0;
@@ -276,7 +280,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 
   // activity list (wins only)
   var ICON_MOVE = '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1l3.2 3.6H9V6.2H7V4.6H4.8zM8 15l-3.2-3.6H7V9.8h2v1.6h2.2zM1.5 7.2h1.7v1.6H1.5zm3.4 0h1.7v1.6H4.9zm3.4 0H10v1.6H8.3zm3.4 0h1.7v1.6h-1.7z"/></svg>';
-  function matches(e, q) { var d = base[e.day].d; return !q || (fmt(d) + " " + FULL[d.getUTCMonth()] + " " + e.text).toLowerCase().indexOf(q) !== -1; }
+  function matches(e, q) { var d = base[e.day].d; return !q || (fmt(d) + " " + FULL[d.getUTCMonth()] + " " + e.text + " " + (e.note || "")).toLowerCase().indexOf(q) !== -1; }
   function inDay(e) { return sel === null || e.day === sel || kidsOf(e.id).some(function (k) { return k.day === sel; }); }
   function visibleTop(q) { return entries.filter(function (e) { return !e.parent && inDay(e) && (matches(e, q) || kidsOf(e.id).some(function (k) { return matches(k, q); })); }); }
   function fullDate(d) { return ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][d.getUTCDay()] + " " + d.getUTCDate() + " " + FULL[d.getUTCMonth()] + " " + d.getUTCFullYear(); }
@@ -294,13 +298,14 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
         '<span class="btns"><button class="bt ok" data-act="save" data-id="' + e.id + '">Save</button><button class="bt no" data-act="ask" data-id="' + e.id + '">Delete</button><button class="bt" data-act="canceledit">Cancel</button></span>' +
         (confirmDel === e.id ? '<div class="confirm" role="alertdialog" aria-label="Confirm delete"><span>Delete this win?</span><button class="bt no solid" data-act="del" data-id="' + e.id + '">Yes, delete</button><button class="bt" data-act="cancel">Cancel</button></div>' : "");
     } else {
-      line = '<span class="t">' + esc(e.text) + (qty(e) > 1 ? ' <b class="qb">&times;' + qty(e) + '</b>' : "") + '</span><span class="m">' + (e.parent ? esc(fmt(base[e.day].d)) : (e.time || "")) + '</span>' +
+      line = '<span class="t"' + (pickable ? "" : ' data-act="open" data-id="' + e.id + '" tabindex="0" role="button" aria-expanded="' + (openId === e.id) + '" title="Click to open the notes" style="cursor:pointer"') + '>' + esc(e.text) + (qty(e) > 1 ? ' <b class="qb">&times;' + qty(e) + '</b>' : "") + (e.note ? ' <span class="nt">notes</span>' : "") + '</span><span class="m">' + (e.parent ? esc(fmt(base[e.day].d)) : (e.time || "")) + '</span>' +
         (kids.length ? '<span class="note2">clubbed, counts as ' + (kids.reduce(function (t, k) { return t + qty(k); }, qty(e))) + ' wins</span>' : "") +
         '<span class="btns"><button class="bt ok" data-act="edit" data-id="' + e.id + '">Edit</button>' +
         '<button class="bt mv" draggable="true" data-act="menu" data-id="' + e.id + '" aria-label="Move this win. Drag it, or press for options" title="Drag to move, or press for options">' + ICON_MOVE + '</button></span>';
     }
     return '<div class="rw"><div class="tr" data-id="' + e.id + '"' + (pickable ? ' data-act="clubto" tabindex="0" role="button" style="cursor:pointer"' : "") + '>' + line + '</div>' +
       (menuFor === e.id ? menuHtml(e) : "") +
+      (openId === e.id && editing !== e.id ? '<div class="detail"><textarea class="notein" data-id="' + e.id + '" maxlength="4000" rows="4" placeholder="Notes, description, details. Saves as you type." aria-label="Notes for this win">' + esc(e.note || "") + '</textarea></div>' : "") +
       (kids.length ? '<div class="kids">' + kids.map(function (k) { return row(k, false); }).join("") + '</div>' : "") + '</div>';
   }
   function commitGroup(i) {
@@ -413,7 +418,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     var b = e.target.closest("[data-act]"); if (!b || b.disabled) return;
     if (b.dataset.act === "clubto" && e.target.closest("button")) return;
     var act = b.dataset.act, id = Number(b.dataset.id), i = Number(b.dataset.i);
-    if (act === "menu") { menuFor = menuFor === id ? null : id; renderFeed(); }
+    if (act === "open") { openId = openId === id ? null : id; renderFeed(); var ta = fl.querySelector(".notein"); if (openId !== null && ta) ta.focus(); }
+    else if (act === "menu") { menuFor = menuFor === id ? null : id; renderFeed(); }
     else if (act === "closemenu") { menuFor = null; renderFeed(); }
     else if (act === "up") swap(id, -1); else if (act === "down") swap(id, 1);
     else if (act === "edit") { editing = id; menuFor = null; confirmDel = null; renderFeed(); }
@@ -429,6 +435,10 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     else if (act === "cstep") { var nv = Math.max(0, data[i].commits + Number(b.dataset.d)); if (nv === base[i].c0) delete overrides[i]; else overrides[i] = nv; afterChange(); }
     else if (act === "creset") { delete overrides[i]; afterChange(); }
   });
+  fl.addEventListener("input", function (e) {
+    if (!e.target.classList || !e.target.classList.contains("notein")) return;
+    var en = byId(Number(e.target.dataset.id)); if (en) { en.note = e.target.value.slice(0, 4000); save(); }
+  });
   fl.addEventListener("change", function (e) {
     if (!e.target.classList || !e.target.classList.contains("dateIn")) return;
     var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(e.target.value), en = byId(Number(e.target.dataset.id)); if (!m || !en) return;
@@ -440,7 +450,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
       var id = editing;
       if (e.key === "Enter") { e.preventDefault(); saveEdit(id); }
       else if (e.key === "Escape") { editing = null; confirmDel = null; renderFeed(); }
-    } else if ((e.key === "Enter" || e.key === " ") && e.target.dataset && e.target.dataset.act === "clubto") { e.preventDefault(); e.target.click(); }
+    } else if ((e.key === "Enter" || e.key === " ") && e.target.dataset && (e.target.dataset.act === "clubto" || e.target.dataset.act === "open")) { e.preventDefault(); e.target.click(); }
   });
   // drag to move: between rows, onto a day heading, or onto the middle of a win to club
   function clearDz() { fl.querySelectorAll(".dz-before,.dz-after,.dz-club,.dz-day").forEach(function (n) { n.classList.remove("dz-before", "dz-after", "dz-club", "dz-day"); }); }
