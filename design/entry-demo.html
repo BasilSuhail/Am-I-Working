@@ -212,13 +212,13 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 
   // grid
   var cells = [], grid = document.getElementById("grid"), tip = document.getElementById("tip");
-  var KEYS = ["commits", "skool", "wins"], CAPS = { commits: 8, skool: 2, wins: 2 }, CL = ["a", "b", "c"];
+  var KEYS = ["commits", "skool", "wins"], CAPS = { commits: 40, skool: 8, wins: 8 }, CL = ["a", "b", "c"];
   function paint(i) {
     var x = data[i], c = cells[i], f = c.querySelectorAll(".fill");
     c.className = "cell" + (i === todayI ? " today" : "") + (i === sel ? " sel" : "");
     c.setAttribute("aria-label", fmt(x.d) + ": " + x.commits + " commits, " + x.skool + " Skool, " + x.wins + " wins" + (i === sel ? ", selected" : ""));
     c.setAttribute("aria-pressed", String(i === sel));
-    for (var k = 0; k < 3; k++) { var v = x[KEYS[k]]; f[k].style.width = v ? Math.max(28, Math.min(100, v / CAPS[KEYS[k]] * 100)) + "%" : "0%"; }
+    for (var k = 0; k < 3; k++) { var v = x[KEYS[k]]; f[k].style.width = v ? Math.max(12, Math.min(100, Math.log(1 + v) / Math.log(1 + CAPS[KEYS[k]]) * 100)) + "%" : "0%"; }
   }
   base.forEach(function (b, i) {
     var c = document.createElement("div"); c.tabIndex = 0; c.setAttribute("role", "button");
