@@ -64,6 +64,10 @@ h1 { font-size: 20px; margin: 10px 0 18px; }
 .adj button:hover { background: var(--tile); }
 .adj button:disabled { opacity: .35; cursor: default; }
 .adj button:focus-visible { outline: 2px solid var(--text-primary); outline-offset: 2px; }
+.adj input { flex: 1; min-width: 0; height: 34px; font: inherit; font-size: 14px; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 0 10px; }
+.adj input:focus-visible { outline: 2px solid var(--text-primary); outline-offset: 2px; }
+.lastwin { margin-top: 8px; font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lastwin b { color: var(--text-primary); }
 .auto { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-muted); text-align: center; line-height: 34px; }
 .tip { position: fixed; z-index: 10; pointer-events: none; display: none; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.18); min-width: 170px; }
 .tip b { display: block; margin-bottom: 4px; }
@@ -162,32 +166,59 @@ h1 { font-size: 20px; margin: 10px 0 18px; }
 
   function sum(k) { return data.slice(-7).reduce(function (t, x) { return t + x[k]; }, 0); }
   function daysWith(k) { return data.slice(-7).filter(function (x) { return x[k] > 0; }).length; }
+  var winNotes = [], draft = "";
+  function esc(t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
   function adj(kind) {
     return '<div class="adj"><button data-k="' + kind + '" data-d="-1" aria-label="Remove one ' + kind + ' today"' + (today[kind] === 0 ? " disabled" : "") + '>&minus;</button>' +
       '<div class="tdy">Today <b>' + today[kind] + '</b></div>' +
       '<button data-k="' + kind + '" data-d="1" aria-label="Add one ' + kind + ' today">+</button></div>';
   }
+  function winRow() {
+    var last = winNotes.length ? ' &middot; last: ' + esc(winNotes[winNotes.length - 1]) : '';
+    return '<div class="adj"><button data-k="wins" data-d="-1" aria-label="Remove the last win"' + (today.wins === 0 ? " disabled" : "") + '>&minus;</button>' +
+      '<input type="text" id="winIn" maxlength="140" placeholder="Type a win, Enter" aria-label="Describe the win, then press Enter to log it" value="' + esc(draft) + '"></div>' +
+      '<div class="lastwin">Today <b>' + today.wins + '</b>' + last + '</div>';
+  }
   function render() {
+    var had = document.activeElement && document.activeElement.id === "winIn";
     document.getElementById("stats").innerHTML =
-      '<div class="stat hero"><div class="n">' + sum("wins") + '</div><div class="l"><i class="dot" style="background:var(--s3)"></i>Wins this week</div>' + adj("wins") + '</div>' +
+      '<div class="stat hero"><div class="n">' + sum("wins") + '</div><div class="l"><i class="dot" style="background:var(--s3)"></i>Wins this week</div>' + winRow() + '</div>' +
       '<div class="stat"><div class="n">' + daysWith("skool") + '</div><div class="l"><i class="dot" style="background:var(--s2)"></i>Skool days</div>' + adj("skool") + '</div>' +
       '<div class="stat"><div class="n">' + sum("commits") + '</div><div class="l"><i class="dot" style="background:var(--s1)"></i>Commits</div><div class="auto">Automatic from GitHub</div></div>';
+    if (had) { var el = document.getElementById("winIn"); el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
   }
-  document.getElementById("stats").addEventListener("click", function (e) {
+  function popToday() { cells[todayI].classList.add("pop"); setTimeout(function () { cells[todayI].classList.remove("pop"); }, 600); }
+  var statsEl = document.getElementById("stats"), live = document.getElementById("live");
+  statsEl.addEventListener("input", function (e) { if (e.target && e.target.id === "winIn") draft = e.target.value; });
+  statsEl.addEventListener("keydown", function (e) {
+    if (!e.target || e.target.id !== "winIn" || e.key !== "Enter") return;
+    e.preventDefault();
+    var t = draft.trim();
+    if (!t) { live.textContent = "Type a few words for the win, then press Enter."; return; }
+    winNotes.push(t); today.wins = winNotes.length; draft = "";
+    paint(todayI); render(); save(); popToday();
+    live.textContent = "Win logged. Today: " + today.wins;
+  });
+  statsEl.addEventListener("click", function (e) {
     var b = e.target.closest ? e.target.closest("button[data-k]") : null;
     if (!b || b.disabled) return;
     var k = b.dataset.k, d = Number(b.dataset.d);
-    today[k] = Math.max(0, today[k] + d);
+    if (k === "wins") { if (d < 0 && winNotes.length) { winNotes.pop(); today.wins = winNotes.length; } }
+    else today[k] = Math.max(0, today[k] + d);
     paint(todayI); render(); save();
-    if (d > 0) { cells[todayI].classList.add("pop"); setTimeout(function () { cells[todayI].classList.remove("pop"); }, 600); }
-    document.getElementById("live").textContent = k + " today: " + today[k];
+    if (d > 0) popToday();
+    live.textContent = k + " today: " + today[k];
     var again = document.querySelector('#stats button[data-k="' + k + '"][data-d="' + d + '"]'); if (again) again.focus();
   });
 
-  function save() { try { localStorage.setItem("amiw-demo3", JSON.stringify({ s: today.skool, w: today.wins })); } catch (e) {} }
+  function save() { try { localStorage.setItem("amiw-demo4", JSON.stringify({ s: today.skool, notes: winNotes })); } catch (e) {} }
   try {
-    var sv = JSON.parse(localStorage.getItem("amiw-demo3") || "null");
-    if (sv && typeof sv.s === "number" && typeof sv.w === "number") { today.skool = Math.max(0, sv.s); today.wins = Math.max(0, sv.w); paint(todayI); }
+    var sv = JSON.parse(localStorage.getItem("amiw-demo4") || "null");
+    if (sv && typeof sv.s === "number" && Array.isArray(sv.notes)) {
+      today.skool = Math.max(0, sv.s);
+      winNotes = sv.notes.filter(function (n) { return typeof n === "string"; }).slice(0, 50);
+      today.wins = winNotes.length; paint(todayI);
+    }
   } catch (e) {}
 
   render();
