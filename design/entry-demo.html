@@ -75,6 +75,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 .searchbar { display: flex; align-items: center; gap: 10px; background: var(--tile); border-radius: 10px; padding: 0 14px; height: 44px; color: var(--text-muted); }
 .searchbar input { flex: 1; min-width: 0; background: transparent; border: 0; color: var(--text-primary); font: inherit; font-size: 15px; height: 100%; }
 .searchbar input:focus-visible { outline: none; }
+.skoolctl { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); white-space: nowrap; padding-left: 10px; border-left: 1px solid var(--border); }
+.skoolctl .td b { color: var(--text-primary); }
+.skoolctl .mini { width: 26px; height: 26px; font-size: 15px; }
 .searchbar:focus-within { outline: 2px solid var(--text-primary); outline-offset: 2px; }
 .count { font-size: 13px; white-space: nowrap; }
 .banner { margin-top: 12px; padding: 10px 12px; border: 1px dashed var(--green); border-radius: 10px; font-size: 14px; display: flex; gap: 10px; align-items: center; justify-content: space-between; }
@@ -122,7 +125,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 .tip div { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .note { margin-top: 24px; color: var(--text-muted); font-size: 13px; }
-@media (max-width: 560px) { .stats { grid-template-columns: 1fr; } .count { display: none; } }
+@media (max-width: 560px) { .count { display: none; } .skoolctl .td { display: none; } }
 </style>
 </head>
 <body>
@@ -146,13 +149,12 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     <span>Click a day to see just that day. Click it again to go back.</span>
   </div>
 
-  <div class="stats" id="stats"></div>
-
   <section class="feed" aria-label="Win log">
     <div class="searchbar">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       <input type="search" id="q" placeholder="Search, or type a win and press Enter" aria-label="Search the log, or type a win and press Enter to add it">
       <span id="count" class="count"></span>
+      <span class="skoolctl" id="stats"></span>
     </div>
     <div id="feedList"></div>
   </section>
@@ -260,10 +262,10 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     return '<div class="stat ' + cls + (clickable ? " clickable" : "") + (clickable && flt === f ? " active" : "") + '"' + attrs + '><div class="info"><div class="n">' + n + '</div><div class="l"><i class="dot" style="background:var(' + color + ')"></i>' + label + '</div></div>' + right + '</div>';
   }
   function renderStats() {
-    document.getElementById("stats").innerHTML =
-      box("wins", "hero", "--s3", sum("wins"), "Wins this week", ctl("wins"), false) +
-      box("skool", "", "--s2", daysWith("skool"), "Skool days", ctl("skool"), false) +
-      box("commits", "", "--s1", sum("commits"), "Commits", '<div class="td">' + (flt === "commits" ? "showing days" : "from GitHub") + '</div>', true);
+    var v = data[tgt()]["skool"], w = esc(dayWord());
+    document.getElementById("stats").innerHTML = '<i class="dot" style="background:var(--s2)"></i><span class="td">Skool ' + w + ' <b>' + v + '</b></span>' +
+      '<button class="mini" data-act="step" data-d="-1" aria-label="Remove one Skool on ' + w + '"' + (v === 0 ? " disabled" : "") + '>&minus;</button>' +
+      '<button class="mini" data-act="step" data-d="1" aria-label="Add one Skool on ' + w + '">+</button>';
   }
 
   // activity list (wins only)
