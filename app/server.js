@@ -5,6 +5,7 @@
 //   PORT        default 8788
 //   AMIW_DATA   folder for data.json (default ~/.am-i-working, outside the repo)
 //   GITHUB_TOKEN, GITHUB_LOGIN   optional, read-only token, fills the commits row
+//   COMMITS_TTL_HOURS            how long to keep GitHub's answer (default 24)
 const http = require("node:http");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -36,11 +37,12 @@ function valid(o) {
     o.entries.every((e) => e && typeof e === "object" && typeof e.text === "string" && Number.isInteger(e.id) && typeof e.date === "string");
 }
 
+const COMMITS_TTL = Math.max(0.05, Number(process.env.COMMITS_TTL_HOURS || 24)) * 3600 * 1000;
 let commitCache = { at: 0, data: {} };
 async function commits() {
   const token = process.env.GITHUB_TOKEN, login = process.env.GITHUB_LOGIN;
   if (!token || !login) return {};
-  if (Date.now() - commitCache.at < 10 * 60 * 1000) return commitCache.data;
+  if (Date.now() - commitCache.at < COMMITS_TTL) return commitCache.data;
   const to = new Date(), from = new Date(Date.now() - 150 * 864e5);
   const query = "query($l:String!,$f:DateTime!,$t:DateTime!){user(login:$l){contributionsCollection(from:$f,to:$t){contributionCalendar{weeks{contributionDays{date contributionCount}}}}}}";
   try {
@@ -54,7 +56,7 @@ async function commits() {
     j.data.user.contributionsCollection.contributionCalendar.weeks.forEach((w) =>
       w.contributionDays.forEach((d) => { if (d.contributionCount > 0) out[d.date] = d.contributionCount; }));
     commitCache = { at: Date.now(), data: out };
-  } catch (e) { commitCache.at = Date.now() - 9 * 60 * 1000; }
+  } catch (e) { commitCache.at = Date.now() - COMMITS_TTL + 60 * 1000; }
   return commitCache.data;
 }
 
