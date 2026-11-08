@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily record sample</title>
+<style>
+:root {
+  color-scheme: light;
+  --surface-1: #fcfcfb;
+  --surface-2: #eeeeeb;
+  --border: #dcdbd6;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #7a7974;
+  --s1: #2a78d6;   /* commits */
+  --s2: #eb6834;   /* skool */
+  --s3: #1baf7a;   /* wins */
+  --q1: #b7d3f6; --q2: #6da7ec; --q3: #2a78d6; --q4: #104281;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --surface-1: #1a1a19;
+    --surface-2: #2a2a28;
+    --border: #3a3a37;
+    --text-primary: #f0efec;
+    --text-secondary: #c3c2b7;
+    --text-muted: #8f8e86;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+    --q1: #104281; --q2: #1c5cab; --q3: #3987e5; --q4: #86b6ef;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-1: #1a1a19;
+  --surface-2: #2a2a28;
+  --border: #3a3a37;
+  --text-primary: #f0efec;
+  --text-secondary: #c3c2b7;
+  --text-muted: #8f8e86;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+  --q1: #104281; --q2: #1c5cab; --q3: #3987e5; --q4: #86b6ef;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--surface-1); color: var(--text-primary);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.wrap { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+.badge {
+  display: inline-block; font-size: 12px; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--text-secondary); border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px;
+}
+h1 { font-size: 20px; margin: 10px 0 2px; }
+.sub { color: var(--text-secondary); margin: 0 0 20px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+.stat { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.stat .n { font-size: 30px; font-weight: 650; line-height: 1.1; }
+.stat .l { font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+.dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.stat.hero { border-color: var(--s3); }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button, .tbl-btn {
+  font: inherit; font-size: 14px; background: transparent; color: var(--text-secondary);
+  border: 0; padding: 6px 14px; cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--surface-2); color: var(--text-primary); font-weight: 600; }
+.tbl-btn { border: 1px solid var(--border); border-radius: 8px; margin-left: auto; }
+.chart-scroll { overflow-x: auto; padding-bottom: 6px; }
+.chart { position: relative; display: inline-block; min-width: 100%; }
+.months { display: flex; margin-left: 34px; height: 18px; font-size: 12px; color: var(--text-muted); position: relative; }
+.months span { position: absolute; }
+.body { display: flex; }
+.wd { display: grid; grid-template-rows: repeat(7, 22px); gap: 3px; width: 34px; font-size: 12px; color: var(--text-muted); }
+.wd span { line-height: 22px; }
+.grid { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 22px); grid-auto-columns: 22px; gap: 3px; }
+.cell { width: 22px; height: 22px; border-radius: 4px; background: var(--surface-2); position: relative; outline-offset: 2px; }
+.cell.future { background: transparent; }
+.cell:focus-visible { outline: 2px solid var(--text-primary); }
+.cell.l1 { background: var(--q1); } .cell.l2 { background: var(--q2); }
+.cell.l3 { background: var(--q3); } .cell.l4 { background: var(--q4); }
+.split .cell { background: var(--surface-2); padding: 3px 3px; display: flex; flex-direction: column; justify-content: space-between; }
+.split .cell.l1, .split .cell.l2, .split .cell.l3, .split .cell.l4 { background: var(--surface-2); }
+.bar { height: 4px; border-radius: 2px; }
+.bar.a { background: var(--s1); } .bar.b { background: var(--s2); } .bar.c { background: var(--s3); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 14px; font-size: 13px; color: var(--text-secondary); }
+.legend .item { display: inline-flex; align-items: center; gap: 6px; }
+.ramp { display: inline-flex; gap: 3px; align-items: center; }
+.ramp i { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+.tip {
+  position: fixed; z-index: 10; pointer-events: none; display: none;
+  background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 10px; font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.18); min-width: 170px;
+}
+.tip b { display: block; margin-bottom: 4px; }
+.tip div { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); }
+table { border-collapse: collapse; width: 100%; margin-top: 14px; font-size: 14px; }
+th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border); }
+th { color: var(--text-secondary); font-weight: 600; }
+td.num, th.num { text-align: right; }
+[hidden] { display: none !important; }
+.note { margin-top: 18px; color: var(--text-muted); font-size: 13px; }
+@media (max-width: 520px) { .stat .n { font-size: 24px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">Sample data, made up</span>
+  <h1>Daily record</h1>
+  <p class="sub">One grid. Three signals: GitHub commits, Skool, and wins.</p>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Chart view">
+      <button id="vBlend" aria-pressed="true">Blend</button>
+      <button id="vSplit" aria-pressed="false">Split</button>
+    </div>
+    <button class="tbl-btn" id="tblBtn" aria-pressed="false">Show as table</button>
+  </div>
+
+  <div class="chart-scroll" id="chartScroll">
+    <div class="chart" id="chart">
+      <div class="months" id="months"></div>
+      <div class="body">
+        <div class="wd"><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span><span></span></div>
+        <div class="grid" id="grid" role="img" aria-label="Activity grid, 20 weeks"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend" id="legend"></div>
+
+  <div id="tableView" hidden>
+    <table>
+      <thead><tr><th>Day</th><th class="num">Commits</th><th class="num">Skool</th><th class="num">Wins</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <p class="note">Blend colour = commits x1 + Skool x3 + wins x6, so a win lights a day far more than a commit. Weights can be changed.</p>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+(function () {
+  // deterministic fake data
+  function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  var rand = rng(2611);
+  var WEEKS = 20, DAYS = WEEKS * 7;
+  var end = Date.UTC(2026, 10, 8);              // Sun 8 Nov 2026
+  var start = end - (DAYS - 1) * 864e5;          // a Monday
+  var MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var WD = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  var data = [];
+  for (var i = 0; i < DAYS; i++) {
+    var d = new Date(start + i * 864e5), w = i % 7;
+    var vanish = (i > 78 && i < 83) || (i > 112 && i < 115);        // a few gap days
+    var commits = vanish ? 0 : Math.floor(rand() * (w > 4 ? 9 : 5));
+    var skool = i > 118 ? (rand() < 0.7 ? 1 + Math.floor(rand() * 2) : 0) : 0;
+    var wins = i > 124 && !vanish ? (rand() < 0.35 ? 1 + (rand() < 0.3 ? 1 : 0) : 0) : 0;
+    data.push({ d: d, w: w, commits: commits, skool: skool, wins: wins });
+  }
+  function score(x) { return x.commits + x.skool * 3 + x.wins * 6; }
+  function level(s) { return s === 0 ? 0 : s <= 3 ? 1 : s <= 7 ? 2 : s <= 12 ? 3 : 4; }
+  function fmt(d) { return WD[(d.getUTCDay() + 6) % 7] + " " + d.getUTCDate() + " " + MON[d.getUTCMonth()]; }
+
+  // stats (last 7 days)
+  var last7 = data.slice(-7);
+  var sum = function (k, a) { return a.reduce(function (t, x) { return t + x[k]; }, 0); };
+  document.getElementById("stats").innerHTML =
+    '<div class="stat hero"><div class="n">' + sum("wins", last7) + '</div><div class="l"><i class="dot" style="background:var(--s3)"></i>Wins this week</div></div>' +
+    '<div class="stat"><div class="n">' + last7.filter(function (x) { return x.skool > 0; }).length + '</div><div class="l"><i class="dot" style="background:var(--s2)"></i>Skool days</div></div>' +
+    '<div class="stat"><div class="n">' + sum("commits", last7) + '</div><div class="l"><i class="dot" style="background:var(--s1)"></i>Commits</div></div>';
+
+  // months row
+  var months = document.getElementById("months"), lastM = -1;
+  for (var wk = 0; wk < WEEKS; wk++) {
+    var md = new Date(start + wk * 7 * 864e5);
+    if (md.getUTCMonth() !== lastM) {
+      var s = document.createElement("span"); s.textContent = MON[md.getUTCMonth()]; s.style.left = (wk * 25) + "px";
+      months.appendChild(s); lastM = md.getUTCMonth();
+    }
+  }
+
+  var grid = document.getElementById("grid"), tip = document.getElementById("tip");
+  var caps = { commits: 8, skool: 2, wins: 2 };
+  data.forEach(function (x) {
+    var c = document.createElement("div");
+    c.className = "cell l" + level(score(x));
+    c.tabIndex = 0;
+    c.setAttribute("aria-label", fmt(x.d) + ": " + x.commits + " commits, " + x.skool + " Skool, " + x.wins + " wins");
+    var keys = [["commits","a"],["skool","b"],["wins","c"]];
+    keys.forEach(function (k) {
+      var b = document.createElement("div"); b.className = "bar " + k[1] + " splitbar";
+      var v = x[k[0]]; b.dataset.v = v;
+      b.style.width = v ? Math.max(30, Math.min(100, v / caps[k[0]] * 100)) + "%" : "0%";
+      c.appendChild(b);
+    });
+    function show(e) {
+      var r = c.getBoundingClientRect();
+      tip.innerHTML = "<b>" + fmt(x.d) + "</b>" +
+        '<div><i class="dot" style="background:var(--s1)"></i>' + x.commits + " commits</div>" +
+        '<div><i class="dot" style="background:var(--s2)"></i>' + x.skool + " Skool</div>" +
+        '<div><i class="dot" style="background:var(--s3)"></i>' + x.wins + " wins</div>";
+      tip.style.display = "block";
+      var left = Math.min(r.left, window.innerWidth - tip.offsetWidth - 8);
+      tip.style.left = Math.max(8, left) + "px";
+      tip.style.top = (r.top - tip.offsetHeight - 8 < 8 ? r.bottom + 8 : r.top - tip.offsetHeight - 8) + "px";
+    }
+    function hide() { tip.style.display = "none"; }
+    c.addEventListener("pointerenter", show); c.addEventListener("pointerleave", hide);
+    c.addEventListener("focus", show); c.addEventListener("blur", hide);
+    grid.appendChild(c);
+  });
+
+  // table (last 14 days)
+  document.getElementById("tbody").innerHTML = data.slice(-14).reverse().map(function (x) {
+    return "<tr><td>" + fmt(x.d) + '</td><td class="num">' + x.commits + '</td><td class="num">' + x.skool + '</td><td class="num">' + x.wins + "</td></tr>";
+  }).join("");
+
+  // views
+  var legend = document.getElementById("legend"), chart = document.getElementById("chart");
+  function setView(v) {
+    var split = v === "split";
+    chart.classList.toggle("split", split);
+    document.getElementById("vBlend").setAttribute("aria-pressed", String(!split));
+    document.getElementById("vSplit").setAttribute("aria-pressed", String(split));
+    grid.querySelectorAll(".splitbar").forEach(function (b) { b.style.display = split ? "block" : "none"; });
+    legend.innerHTML = split
+      ? '<span class="item"><i class="dot" style="background:var(--s1)"></i>Commits (top bar)</span><span class="item"><i class="dot" style="background:var(--s2)"></i>Skool (middle bar)</span><span class="item"><i class="dot" style="background:var(--s3)"></i>Wins (bottom bar)</span><span>Longer bar means more.</span>'
+      : '<span class="ramp">Less <i style="background:var(--surface-2)"></i><i style="background:var(--q1)"></i><i style="background:var(--q2)"></i><i style="background:var(--q3)"></i><i style="background:var(--q4)"></i> More</span>';
+  }
+  document.getElementById("vBlend").onclick = function () { setView("blend"); };
+  document.getElementById("vSplit").onclick = function () { setView("split"); };
+  setView("blend");
+
+  document.getElementById("tblBtn").onclick = function () {
+    var on = document.getElementById("tblBtn").getAttribute("aria-pressed") !== "true";
+    document.getElementById("tblBtn").setAttribute("aria-pressed", String(on));
+    document.getElementById("tblBtn").textContent = on ? "Show as grid" : "Show as table";
+    document.getElementById("tableView").hidden = !on;
+    document.getElementById("chartScroll").hidden = on;
+    legend.hidden = on;
+  };
+  // start scrolled to the latest week on narrow screens
+  var sc = document.getElementById("chartScroll"); sc.scrollLeft = sc.scrollWidth;
+})();
+</script>
+</body>
+</html>
