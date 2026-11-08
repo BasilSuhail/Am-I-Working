@@ -202,7 +202,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   function recompute() {
     data.forEach(function (x, i) { x.commits = overrides[i] !== undefined ? overrides[i] : base[i].c0; x.skool = skoolC[i]; x.wins = 0; });
     entries.forEach(function (e) { data[e.day].wins++; });
-    // bar scale follows the data: the biggest day is full, but small numbers never fill up
+    // bar scale follows the data: the biggest day of each row is always the full bar
     KEYS.forEach(function (k) { CAPS[k] = Math.max(FLOOR[k], data.reduce(function (m, x) { return Math.max(m, x[k]); }, 0)); });
   }
   function tgt() { return sel === null ? todayI : sel; }
@@ -213,13 +213,13 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 
   // grid
   var cells = [], grid = document.getElementById("grid"), tip = document.getElementById("tip");
-  var KEYS = ["commits", "skool", "wins"], FLOOR = { commits: 16, skool: 10, wins: 10 }, CAPS = { commits: 16, skool: 10, wins: 10 }, CL = ["a", "b", "c"];
+  var KEYS = ["commits", "skool", "wins"], FLOOR = { commits: 1, skool: 1, wins: 1 }, CAPS = { commits: 1, skool: 1, wins: 1 }, CL = ["a", "b", "c"];
   function paint(i) {
     var x = data[i], c = cells[i], f = c.querySelectorAll(".fill");
     c.className = "cell" + (i === todayI ? " today" : "") + (i === sel ? " sel" : "");
     c.setAttribute("aria-label", fmt(x.d) + ": " + x.commits + " commits, " + x.skool + " Skool, " + x.wins + " wins" + (i === sel ? ", selected" : ""));
     c.setAttribute("aria-pressed", String(i === sel));
-    for (var k = 0; k < 3; k++) { var v = x[KEYS[k]]; f[k].style.width = v ? Math.max(14, Math.min(100, v / CAPS[KEYS[k]] * 100)) + "%" : "0%"; }
+    for (var k = 0; k < 3; k++) { var v = x[KEYS[k]]; f[k].style.width = v ? Math.max(16, Math.min(100, v / CAPS[KEYS[k]] * 100)) + "%" : "0%"; }
   }
   base.forEach(function (b, i) {
     var c = document.createElement("div"); c.tabIndex = 0; c.setAttribute("role", "button");
