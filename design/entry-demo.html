@@ -32,33 +32,10 @@
 body { margin: 0; background: var(--surface-1); color: var(--text-primary); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
 .wrap { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
 .badge { display: inline-block; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--text-secondary); border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; }
-h1 { font-size: 20px; margin: 10px 0 2px; }
-h2 { font-size: 15px; margin: 0 0 10px; }
-.sub { color: var(--text-secondary); margin: 0 0 20px; }
-.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
-.stat { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
-.stat .n { font-size: 30px; font-weight: 650; line-height: 1.1; }
-.stat .l { font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
-.dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
-.stat.hero { border-color: var(--s3); }
-.entry { border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 20px; }
-.row { display: flex; flex-wrap: wrap; gap: 8px; }
-button { font: inherit; font-size: 14px; cursor: pointer; }
-.btn { border: 1px solid var(--border); background: transparent; color: var(--text-primary); border-radius: 8px; padding: 8px 14px; display: inline-flex; align-items: center; gap: 8px; }
-.btn:hover { background: var(--surface-2); }
-.btn:focus-visible, input:focus-visible { outline: 2px solid var(--text-primary); outline-offset: 2px; }
-.btn.win { border-color: var(--s3); }
-.btn.skool { border-color: var(--s2); }
-input[type="text"] { flex: 1 1 220px; font: inherit; font-size: 14px; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; min-width: 0; }
-.hint { font-size: 13px; color: var(--text-muted); margin: 8px 0 0; }
-.log { list-style: none; margin: 12px 0 0; padding: 0; font-size: 14px; }
-.log li { display: flex; gap: 8px; align-items: baseline; padding: 6px 0; border-top: 1px solid var(--border); color: var(--text-secondary); }
-.log li .t { color: var(--text-muted); font-size: 12px; min-width: 42px; }
-.log li .undo { margin-left: auto; font-size: 12px; background: none; border: 0; color: var(--text-muted); text-decoration: underline; padding: 0; }
-.live { font-size: 13px; color: var(--text-secondary); min-height: 20px; margin-top: 8px; }
-.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
-.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-.seg button { background: transparent; color: var(--text-secondary); border: 0; padding: 6px 14px; }
+h1 { font-size: 20px; margin: 10px 0 16px; }
+.top { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-left: auto; }
+.seg button { font: inherit; font-size: 14px; cursor: pointer; background: transparent; color: var(--text-secondary); border: 0; padding: 6px 14px; }
 .seg button[aria-pressed="true"] { background: var(--surface-2); color: var(--text-primary); font-weight: 600; }
 .chart-scroll { overflow-x: auto; padding-bottom: 6px; }
 .chart { position: relative; display: inline-block; min-width: 100%; }
@@ -79,40 +56,39 @@ input[type="text"] { flex: 1 1 220px; font: inherit; font-size: 14px; background
 .pop { animation: pop .5s ease; }
 @keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.5); } 100% { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .pop { animation: none; } }
-.legend { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 14px; font-size: 13px; color: var(--text-secondary); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 12px; font-size: 13px; color: var(--text-secondary); }
 .legend .item { display: inline-flex; align-items: center; gap: 6px; }
 .ramp { display: inline-flex; gap: 3px; align-items: center; }
 .ramp i { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+.dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 22px; }
+.stat { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.stat.hero { border-color: var(--s3); }
+.stat .n { font-size: 30px; font-weight: 650; line-height: 1.1; }
+.stat .l { font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+.adj { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+.adj .tdy { flex: 1; text-align: center; font-size: 13px; color: var(--text-secondary); }
+.adj .tdy b { color: var(--text-primary); font-size: 16px; }
+.adj button { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-primary); font: inherit; font-size: 20px; line-height: 1; cursor: pointer; }
+.adj button:hover { background: var(--surface-2); }
+.adj button:disabled { opacity: .35; cursor: default; }
+.adj button:focus-visible { outline: 2px solid var(--text-primary); outline-offset: 2px; }
+.auto { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-muted); text-align: center; }
 .tip { position: fixed; z-index: 10; pointer-events: none; display: none; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.18); min-width: 170px; }
 .tip b { display: block; margin-bottom: 4px; }
 .tip div { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .note { margin-top: 18px; color: var(--text-muted); font-size: 13px; }
-@media (max-width: 520px) { .stat .n { font-size: 24px; } }
+@media (max-width: 520px) { .stat .n { font-size: 24px; } .stats { gap: 8px; } .stat { padding: 10px; } }
 </style>
 </head>
 <body>
 <div class="wrap">
   <span class="badge">Demo, made up history</span>
-  <h1>Daily record, with manual entry</h1>
-  <p class="sub">Add a Skool day or a win. Today's square updates straight away.</p>
+  <h1>Daily record</h1>
 
-  <div class="stats" id="stats"></div>
-
-  <section class="entry" aria-labelledby="eh">
-    <h2 id="eh">Add today's entries</h2>
-    <div class="row">
-      <button class="btn skool" id="addSkool"><i class="dot" style="background:var(--s2)"></i>+1 Skool</button>
-    </div>
-    <div class="row" style="margin-top:8px">
-      <input type="text" id="winText" placeholder="What was the win? A reply, a lead, something shipped" maxlength="140" aria-label="Win description">
-      <button class="btn win" id="addWin"><i class="dot" style="background:var(--s3)"></i>+1 Win</button>
-    </div>
-    <p class="hint">Skool: one tap per session. Win: type a few words, press Enter or the button. The note is kept in the log.</p>
-    <div class="live" id="live" role="status" aria-live="polite"></div>
-    <ul class="log" id="log"></ul>
-  </section>
-
-  <div class="controls">
+  <div class="top">
     <div class="seg" role="group" aria-label="Chart view">
       <button id="vBlend" aria-pressed="true">Blend</button>
       <button id="vSplit" aria-pressed="false">Split</button>
@@ -130,7 +106,10 @@ input[type="text"] { flex: 1 1 220px; font: inherit; font-size: 14px; background
   </div>
   <div class="legend" id="legend"></div>
 
-  <p class="note">Demo only. Entries are kept in this browser, not sent anywhere. The real tracker saves them to a file on your server.</p>
+  <div class="stats" id="stats"></div>
+  <div class="sr" id="live" role="status" aria-live="polite"></div>
+
+  <p class="note">Demo only. Counts you change here stay in this browser. The real tracker saves them to a file on your server.</p>
 </div>
 <div class="tip" id="tip"></div>
 
@@ -144,27 +123,24 @@ input[type="text"] { flex: 1 1 220px; font: inherit; font-size: 14px; background
   var WD = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
   var data = [];
   for (var i = 0; i < DAYS; i++) {
-    var w = i % 7, vanish = (i > 78 && i < 83) || (i > 112 && i < 115);
-    data.push({ d: new Date(start + i * 864e5), w: w,
+    var w = i % 7, vanish = (i > 78 && i < 83) || (i > 112 && i < 115), isToday = i === DAYS - 1;
+    data.push({ d: new Date(start + i * 864e5),
       commits: vanish ? 0 : Math.floor(rand() * (w > 4 ? 9 : 5)),
-      skool: i > 118 && i < DAYS - 1 ? (rand() < 0.7 ? 1 : 0) : 0,
-      wins: i > 124 && i < DAYS - 1 && !vanish ? (rand() < 0.3 ? 1 : 0) : 0 });
+      skool: !isToday && i > 118 ? (rand() < 0.7 ? 1 : 0) : 0,
+      wins: !isToday && i > 124 && !vanish ? (rand() < 0.3 ? 1 : 0) : 0 });
   }
   var todayI = DAYS - 1, today = data[todayI];
-  var log = [];
+  var caps = { commits: 8, skool: 2, wins: 2 }, split = false;
 
   function score(x) { return x.commits + x.skool * 3 + x.wins * 6; }
   function level(s) { return s === 0 ? 0 : s <= 3 ? 1 : s <= 7 ? 2 : s <= 12 ? 3 : 4; }
   function fmt(d) { return WD[(d.getUTCDay() + 6) % 7] + " " + d.getUTCDate() + " " + MON[d.getUTCMonth()]; }
-  var caps = { commits: 8, skool: 2, wins: 2 };
-  var split = false;
 
   var cells = [], grid = document.getElementById("grid"), tip = document.getElementById("tip");
   function paint(i) {
-    var x = data[i], c = cells[i];
+    var x = data[i], c = cells[i], keys = ["commits", "skool", "wins"], bars = c.querySelectorAll(".bar");
     c.className = "cell l" + level(score(x)) + (i === todayI ? " today" : "");
     c.setAttribute("aria-label", fmt(x.d) + ": " + x.commits + " commits, " + x.skool + " Skool, " + x.wins + " wins");
-    var bars = c.querySelectorAll(".bar"), keys = ["commits", "skool", "wins"];
     for (var k = 0; k < 3; k++) {
       var v = x[keys[k]];
       bars[k].style.width = v ? Math.max(30, Math.min(100, v / caps[keys[k]] * 100)) + "%" : "0%";
@@ -196,56 +172,34 @@ input[type="text"] { flex: 1 1 220px; font: inherit; font-size: 14px; background
     if (md.getUTCMonth() !== lastM) { var s = document.createElement("span"); s.textContent = MON[md.getUTCMonth()]; s.style.left = (wk * 25) + "px"; months.appendChild(s); lastM = md.getUTCMonth(); }
   }
 
-  function sum(k, a) { return a.reduce(function (t, x) { return t + x[k]; }, 0); }
-  function stats() {
-    var l7 = data.slice(-7);
+  function sum(k) { return data.slice(-7).reduce(function (t, x) { return t + x[k]; }, 0); }
+  function daysWith(k) { return data.slice(-7).filter(function (x) { return x[k] > 0; }).length; }
+  function adj(kind) {
+    return '<div class="adj"><button data-k="' + kind + '" data-d="-1" aria-label="Remove one ' + kind + ' today"' + (today[kind] === 0 ? " disabled" : "") + '>&minus;</button>' +
+      '<div class="tdy">Today <b>' + today[kind] + '</b></div>' +
+      '<button data-k="' + kind + '" data-d="1" aria-label="Add one ' + kind + ' today">+</button></div>';
+  }
+  function render() {
     document.getElementById("stats").innerHTML =
-      '<div class="stat hero"><div class="n">' + sum("wins", l7) + '</div><div class="l"><i class="dot" style="background:var(--s3)"></i>Wins this week</div></div>' +
-      '<div class="stat"><div class="n">' + l7.filter(function (x) { return x.skool > 0; }).length + '</div><div class="l"><i class="dot" style="background:var(--s2)"></i>Skool days</div></div>' +
-      '<div class="stat"><div class="n">' + sum("commits", l7) + '</div><div class="l"><i class="dot" style="background:var(--s1)"></i>Commits</div></div>';
+      '<div class="stat hero"><div class="n">' + sum("wins") + '</div><div class="l"><i class="dot" style="background:var(--s3)"></i>Wins this week</div>' + adj("wins") + '</div>' +
+      '<div class="stat"><div class="n">' + daysWith("skool") + '</div><div class="l"><i class="dot" style="background:var(--s2)"></i>Skool days</div>' + adj("skool") + '</div>' +
+      '<div class="stat"><div class="n">' + sum("commits") + '</div><div class="l"><i class="dot" style="background:var(--s1)"></i>Commits</div><div class="auto">Automatic from GitHub</div></div>';
   }
-
-  function esc(t) { var d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
-  function renderLog() {
-    var ul = document.getElementById("log");
-    ul.innerHTML = log.slice().reverse().map(function (e) {
-      return '<li><span class="t">' + e.time + '</span><i class="dot" style="background:var(' + (e.kind === "skool" ? "--s2" : "--s3") + ')"></i><span>' +
-        (e.kind === "skool" ? "Skool session" : "Win: " + esc(e.note)) + '</span><button class="undo" data-id="' + e.id + '">undo</button></li>';
-    }).join("");
-  }
-  function say(t) { document.getElementById("live").textContent = t; }
-  var nid = 1;
-  function add(kind, note) {
-    log.push({ id: nid++, kind: kind, note: note, time: new Date().toTimeString().slice(0, 5) });
-    today[kind === "skool" ? "skool" : "wins"] += 1;
-    paint(todayI); stats(); renderLog(); save();
-    cells[todayI].classList.add("pop"); setTimeout(function () { cells[todayI].classList.remove("pop"); }, 600);
-    say(kind === "skool" ? "Skool added to today." : "Win added to today.");
-  }
-  document.getElementById("addSkool").onclick = function () { add("skool", ""); };
-  var wt = document.getElementById("winText");
-  function addWin() {
-    var t = wt.value.trim();
-    if (!t) { say("Type a few words for the win first."); wt.focus(); return; }
-    add("win", t); wt.value = "";
-  }
-  document.getElementById("addWin").onclick = addWin;
-  wt.addEventListener("keydown", function (e) { if (e.key === "Enter") addWin(); });
-  document.getElementById("log").addEventListener("click", function (e) {
-    var id = e.target && e.target.dataset ? Number(e.target.dataset.id) : 0;
-    if (!id) return;
-    var idx = log.findIndex(function (x) { return x.id === id; });
-    if (idx < 0) return;
-    var e2 = log.splice(idx, 1)[0];
-    today[e2.kind === "skool" ? "skool" : "wins"] -= 1;
-    paint(todayI); stats(); renderLog(); save(); say("Entry removed.");
+  document.getElementById("stats").addEventListener("click", function (e) {
+    var b = e.target.closest ? e.target.closest("button[data-k]") : null;
+    if (!b || b.disabled) return;
+    var k = b.dataset.k, d = Number(b.dataset.d);
+    today[k] = Math.max(0, today[k] + d);
+    paint(todayI); render(); save();
+    if (d > 0) { cells[todayI].classList.add("pop"); setTimeout(function () { cells[todayI].classList.remove("pop"); }, 600); }
+    document.getElementById("live").textContent = k + " today: " + today[k];
+    var again = document.querySelector('#stats button[data-k="' + k + '"][data-d="' + d + '"]'); if (again) again.focus();
   });
 
-  function save() { try { localStorage.setItem("amiw-demo", JSON.stringify(log)); } catch (e) {} }
+  function save() { try { localStorage.setItem("amiw-demo2", JSON.stringify({ s: today.skool, w: today.wins })); } catch (e) {} }
   try {
-    var saved = JSON.parse(localStorage.getItem("amiw-demo") || "[]");
-    if (Array.isArray(saved)) saved.forEach(function (e) { log.push(e); nid = Math.max(nid, e.id + 1); today[e.kind === "skool" ? "skool" : "wins"] += 1; });
-    cells[todayI] && paint(todayI);
+    var sv = JSON.parse(localStorage.getItem("amiw-demo2") || "null");
+    if (sv && typeof sv.s === "number" && typeof sv.w === "number") { today.skool = Math.max(0, sv.s); today.wins = Math.max(0, sv.w); paint(todayI); }
   } catch (e) {}
 
   var legend = document.getElementById("legend"), chart = document.getElementById("chart");
@@ -261,7 +215,7 @@ input[type="text"] { flex: 1 1 220px; font: inherit; font-size: 14px; background
   }
   document.getElementById("vBlend").onclick = function () { setView("blend"); };
   document.getElementById("vSplit").onclick = function () { setView("split"); };
-  stats(); renderLog(); setView("blend");
+  render(); setView("blend");
   var sc = document.getElementById("chartScroll"); sc.scrollLeft = sc.scrollWidth;
 })();
 </script>
