@@ -116,6 +116,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 .menu input[type="date"] { font: inherit; font-size: 12px; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 1px 4px; color-scheme: inherit; }
 .kids { margin: 0 0 2px 4px; padding-left: 12px; border-left: 2px solid var(--green); }
 .kids .rw + .rw { border-top: 1px solid var(--border); }
+.qtyl { display: inline-flex; align-items: center; gap: 3px; font-size: 13px; color: var(--text-secondary); }
+.qtyin { width: 52px; font: inherit; font-size: 14px; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--green); border-radius: 6px; padding: 3px 6px; }
+.qb { color: var(--green); font-weight: 600; }
 .editin { flex: 1; min-width: 160px; font: inherit; font-size: 14px; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--green); border-radius: 6px; padding: 3px 8px; }
 .empty { margin-top: 18px; color: var(--text-muted); font-size: 14px; }
 .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; box-shadow: 0 4px 16px rgba(0,0,0,.35); display: none; gap: 14px; align-items: center; font-size: 14px; z-index: 20; }
@@ -199,9 +202,10 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   })();
 
   var data = base.map(function (x) { return { d: x.d, commits: x.c0, skool: 0, wins: 0 }; });
+  function qty(e) { var n = Math.floor(Number(e.n)); return n >= 1 ? Math.min(n, 99) : 1; }
   function recompute() {
     data.forEach(function (x, i) { x.commits = overrides[i] !== undefined ? overrides[i] : base[i].c0; x.skool = skoolC[i]; x.wins = 0; });
-    entries.forEach(function (e) { data[e.day].wins++; });
+    entries.forEach(function (e) { data[e.day].wins += qty(e); });
     // bar scale follows the data: the biggest day of each row is always the full bar
     KEYS.forEach(function (k) { CAPS[k] = Math.max(FLOOR[k], data.reduce(function (m, x) { return Math.max(m, x[k]); }, 0)); });
   }
@@ -286,12 +290,12 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   function row(e, pickable) {
     var kids = e.parent ? [] : kidsOf(e.id), line;
     if (editing === e.id) {
-      line = '<input class="editin" data-edit="' + e.id + '" value="' + esc(e.text) + '" maxlength="140" aria-label="Edit the win, Enter to save, Escape to cancel">' +
+      line = '<input class="editin" data-edit="' + e.id + '" value="' + esc(e.text) + '" maxlength="140" aria-label="Edit the win, Enter to save, Escape to cancel"><label class="qtyl">&times;<input type="number" class="qtyin" min="1" max="99" value="' + qty(e) + '" aria-label="How many this win counts for"></label>' +
         '<span class="btns"><button class="bt ok" data-act="save" data-id="' + e.id + '">Save</button><button class="bt no" data-act="ask" data-id="' + e.id + '">Delete</button><button class="bt" data-act="canceledit">Cancel</button></span>' +
         (confirmDel === e.id ? '<div class="confirm" role="alertdialog" aria-label="Confirm delete"><span>Delete this win?</span><button class="bt no solid" data-act="del" data-id="' + e.id + '">Yes, delete</button><button class="bt" data-act="cancel">Cancel</button></div>' : "");
     } else {
-      line = '<span class="t">' + esc(e.text) + '</span><span class="m">' + (e.parent ? esc(fmt(base[e.day].d)) : (e.time || "")) + '</span>' +
-        (kids.length ? '<span class="note2">clubbed, counts as ' + (kids.length + 1) + ' wins</span>' : "") +
+      line = '<span class="t">' + esc(e.text) + (qty(e) > 1 ? ' <b class="qb">&times;' + qty(e) + '</b>' : "") + '</span><span class="m">' + (e.parent ? esc(fmt(base[e.day].d)) : (e.time || "")) + '</span>' +
+        (kids.length ? '<span class="note2">clubbed, counts as ' + (kids.reduce(function (t, k) { return t + qty(k); }, qty(e))) + ' wins</span>' : "") +
         '<span class="btns"><button class="bt ok" data-act="edit" data-id="' + e.id + '">Edit</button>' +
         '<button class="bt mv" draggable="true" data-act="menu" data-id="' + e.id + '" aria-label="Move this win. Drag it, or press for options" title="Drag to move, or press for options">' + ICON_MOVE + '</button></span>';
     }
@@ -398,6 +402,12 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   document.getElementById("stats").addEventListener("keydown", function (e) {
     if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("stat")) { e.preventDefault(); e.target.click(); }
   });
+  function saveEdit(id) {
+    var inp = document.querySelector("#feedList .editin"), q = document.querySelector("#feedList .qtyin"), en = byId(id);
+    if (en && inp && inp.value.trim()) en.text = inp.value.trim().slice(0, 140);
+    if (en && q) { var n = Math.floor(Number(q.value)); en.n = n >= 1 ? Math.min(n, 99) : 1; }
+    editing = null; confirmDel = null; afterChange();
+  }
   var fl = document.getElementById("feedList"), dragId = null, drop = null;
   fl.addEventListener("click", function (e) {
     var b = e.target.closest("[data-act]"); if (!b || b.disabled) return;
@@ -407,7 +417,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     else if (act === "closemenu") { menuFor = null; renderFeed(); }
     else if (act === "up") swap(id, -1); else if (act === "down") swap(id, 1);
     else if (act === "edit") { editing = id; menuFor = null; confirmDel = null; renderFeed(); }
-    else if (act === "save") { var inp = fl.querySelector(".editin"), en = byId(id); if (inp && en && inp.value.trim()) en.text = inp.value.trim().slice(0, 140); editing = null; confirmDel = null; afterChange(); }
+    else if (act === "save") saveEdit(id);
     else if (act === "canceledit") { editing = null; confirmDel = null; renderFeed(); }
     else if (act === "ask") { confirmDel = id; renderFeed(); }
     else if (act === "cancel") { confirmDel = null; renderFeed(); }
@@ -426,9 +436,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     placeTop(en, day); menuFor = null; afterChange(); live.textContent = "Moved to " + fmt(base[day].d);
   });
   fl.addEventListener("keydown", function (e) {
-    if (e.target.classList.contains("editin")) {
-      var id = Number(e.target.dataset.edit);
-      if (e.key === "Enter") { e.preventDefault(); var t = e.target.value.trim(), en = byId(id); if (t && en) en.text = t.slice(0, 140); editing = null; confirmDel = null; afterChange(); }
+    if (e.target.classList.contains("editin") || e.target.classList.contains("qtyin")) {
+      var id = editing;
+      if (e.key === "Enter") { e.preventDefault(); saveEdit(id); }
       else if (e.key === "Escape") { editing = null; confirmDel = null; renderFeed(); }
     } else if ((e.key === "Enter" || e.key === " ") && e.target.dataset && e.target.dataset.act === "clubto") { e.preventDefault(); e.target.click(); }
   });
