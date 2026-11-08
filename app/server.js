@@ -32,6 +32,7 @@ function writeState(obj) {
 function valid(o) {
   return o && typeof o === "object" && o.v === 1 && Array.isArray(o.entries) && o.entries.length < 20000 &&
     o.skool && typeof o.skool === "object" && !Array.isArray(o.skool) &&
+    (o.lists == null || (Array.isArray(o.lists) && o.lists.length < 500)) &&
     o.entries.every((e) => e && typeof e === "object" && typeof e.text === "string" && Number.isInteger(e.id) && typeof e.date === "string");
 }
 
