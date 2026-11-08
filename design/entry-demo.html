@@ -84,10 +84,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 .tmonth { display: flex; align-items: center; gap: 12px; margin: 16px 0 4px; font-size: 14px; }
 .tmonth b { font-weight: 600; } .tmonth span { color: var(--text-muted); }
 .tmonth::after { content: ""; flex: 1; border-top: 1px solid var(--border); }
-.tg { position: relative; padding: 0 0 8px 38px; }
-.tg::before { content: ""; position: absolute; left: 12px; top: 28px; bottom: 0; border-left: 2px solid var(--border); }
-.tg:last-child::before { display: none; }
-.ic { position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--tile); display: grid; place-items: center; color: var(--text-secondary); }
+.tg { position: relative; padding: 0 0 8px 18px; }
+.tg::before { content: ""; position: absolute; left: 3px; top: 0; bottom: 0; border-left: 2px solid var(--border); }
+.ic { display: none; position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--tile); display: grid; place-items: center; color: var(--text-secondary); }
 .ic svg { width: 13px; height: 13px; }
 .tg h3 { margin: 0; font-size: 14px; font-weight: 400; min-height: 26px; display: flex; align-items: center; justify-content: space-between; gap: 8px; border-radius: 6px; }
 .tg h3 b { font-weight: 600; }
