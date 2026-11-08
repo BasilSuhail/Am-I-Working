@@ -276,6 +276,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   function matches(e, q) { var d = base[e.day].d; return !q || (fmt(d) + " " + FULL[d.getUTCMonth()] + " " + e.text).toLowerCase().indexOf(q) !== -1; }
   function inDay(e) { return sel === null || e.day === sel || kidsOf(e.id).some(function (k) { return k.day === sel; }); }
   function visibleTop(q) { return entries.filter(function (e) { return !e.parent && inDay(e) && (matches(e, q) || kidsOf(e.id).some(function (k) { return matches(k, q); })); }); }
+  function fullDate(d) { return ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][d.getUTCDay()] + " " + d.getUTCDate() + " " + FULL[d.getUTCMonth()] + " " + d.getUTCFullYear(); }
   function isoDay(i) { return base[i].d.toISOString().slice(0, 10); }
   function menuHtml(e) {
     return '<div class="menu" role="group" aria-label="Move options"><button class="bt" data-act="up" data-id="' + e.id + '">Move up</button><button class="bt" data-act="down" data-id="' + e.id + '">Move down</button>' +
@@ -301,7 +302,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   }
   function commitGroup(i) {
     var x = data[i], o = overrides[i] !== undefined;
-    return '<div class="tg"><div class="ic">' + ICON_GIT + '</div><h3><span>Created <b>' + x.commits + '</b> ' + (x.commits === 1 ? "commit" : "commits") + ' on <b>' + esc(fmt(x.d)) + '</b></span><span class="when">' + x.d.getUTCDate() + ' ' + MON[x.d.getUTCMonth()] + '</span></h3>' +
+    return '<div class="tg"><div class="ic">' + ICON_GIT + '</div><h3><span>Created <b>' + x.commits + '</b> ' + (x.commits === 1 ? "commit" : "commits") + '</span><span class="when">' + fullDate(x.d) + '</span></h3>' +
       '<div class="rw"><div class="tr"><span class="t">GitHub says ' + base[i].c0 + (o ? ', you set ' + x.commits : "") + '</span><span class="btns">' +
       '<button class="mini" data-act="cstep" data-i="' + i + '" data-d="-1" aria-label="Count one fewer commit on ' + esc(fmt(x.d)) + '"' + (x.commits === 0 ? " disabled" : "") + '>&minus;</button>' +
       '<button class="mini" data-act="cstep" data-i="' + i + '" data-d="1" aria-label="Count one more commit on ' + esc(fmt(x.d)) + '">+</button>' +
@@ -327,7 +328,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
         var d = base[g.day].d, key = d.getUTCFullYear() + "-" + d.getUTCMonth();
         if (key !== lastKey) { html += monthHead(d); lastKey = key; }
         var total = data[g.day].wins;
-        html += '<div class="tg"><div class="ic">' + ICON_WIN + '</div><h3 data-day="' + g.day + '"><span><b>' + total + '</b> ' + (total === 1 ? "win" : "wins") + ' on <b>' + esc(fmt(d)) + '</b></span><span class="when">' + d.getUTCDate() + ' ' + MON[d.getUTCMonth()] + '</span></h3>' +
+        html += '<div class="tg"><div class="ic">' + ICON_WIN + '</div><h3 data-day="' + g.day + '"><span><b>' + total + '</b> ' + (total === 1 ? "win" : "wins") + '</span><span class="when">' + fullDate(d) + '</span></h3>' +
           g.items.map(function (e) { return row(e, clubFrom !== null && clubFrom !== e.id); }).join("") + '</div>';
       });
       if (!vis.length) html += '<p class="empty">' + (q ? "No match. Press Enter to add it as a win." : (sel === null ? "No wins yet. Type one above and press Enter." : "No wins on this day.")) + "</p>";
