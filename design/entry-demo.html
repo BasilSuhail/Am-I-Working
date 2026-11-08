@@ -80,34 +80,43 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 .banner { margin-top: 12px; padding: 10px 12px; border: 1px dashed var(--green); border-radius: 10px; font-size: 14px; display: flex; gap: 10px; align-items: center; justify-content: space-between; }
 .linkbtn { background: none; border: 0; color: var(--text-primary); text-decoration: underline; padding: 0; font-size: 13px; }
 
-/* GitHub-style activity timeline */
-.tmonth { display: flex; align-items: center; gap: 12px; margin: 26px 0 8px; font-size: 14px; }
+/* GitHub-style activity timeline, compact */
+.tmonth { display: flex; align-items: center; gap: 12px; margin: 16px 0 4px; font-size: 14px; }
 .tmonth b { font-weight: 600; } .tmonth span { color: var(--text-muted); }
 .tmonth::after { content: ""; flex: 1; border-top: 1px solid var(--border); }
-.tg { position: relative; padding: 0 0 22px 46px; }
-.tg::before { content: ""; position: absolute; left: 15px; top: 34px; bottom: 0; border-left: 2px solid var(--border); }
+.tg { position: relative; padding: 0 0 8px 38px; }
+.tg::before { content: ""; position: absolute; left: 12px; top: 28px; bottom: 0; border-left: 2px solid var(--border); }
 .tg:last-child::before { display: none; }
-.ic { position: absolute; left: 0; top: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--tile); display: grid; place-items: center; color: var(--text-secondary); }
-.tg h3 { margin: 0; font-size: 16px; font-weight: 400; min-height: 32px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ic { position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--tile); display: grid; place-items: center; color: var(--text-secondary); }
+.ic svg { width: 13px; height: 13px; }
+.tg h3 { margin: 0; font-size: 14px; font-weight: 400; min-height: 26px; display: flex; align-items: center; justify-content: space-between; gap: 8px; border-radius: 6px; }
 .tg h3 b { font-weight: 600; }
+.tg h3.dz-day { outline: 2px dashed var(--green); outline-offset: 2px; }
 .when { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
-.tr { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 8px 0; }
-.tr + .tr { border-top: 1px solid var(--border); }
-.tr .t { flex: 1; min-width: 150px; overflow-wrap: anywhere; }
+.tr { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 4px 0; }
+.rw + .rw { border-top: 1px solid var(--border); }
+.tr .t { flex: 1; min-width: 140px; overflow-wrap: anywhere; font-size: 14px; }
 .tr .m { font-size: 12px; color: var(--text-muted); }
+.tr.dz-before { box-shadow: 0 -2px 0 var(--green); }
+.tr.dz-after { box-shadow: 0 2px 0 var(--green); }
+.tr.dz-club { background: var(--tile); outline: 2px dashed var(--green); outline-offset: 1px; border-radius: 6px; }
+.tr.dragging { opacity: .4; }
 .note2 { font-size: 12px; color: var(--green); }
-.btns { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
-.bt { font-size: 12px; padding: 3px 10px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); }
+.btns { display: flex; gap: 4px; align-items: center; }
+.bt { font-size: 12px; padding: 2px 9px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); line-height: 1.5; }
 .bt:hover:not(:disabled) { background: var(--tile); color: var(--text-primary); }
 .bt:disabled { opacity: .3; cursor: default; }
 .bt.ok { color: var(--green); border-color: var(--green); }
 .bt.no { color: var(--red); border-color: var(--red); }
 .bt.no.solid { background: var(--red); color: #fff; }
-.bt.arrow { padding: 3px 8px; }
-.confirm { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; background: var(--redbg); border: 1px solid var(--red); border-radius: 8px; padding: 8px 10px; font-size: 14px; }
-.kids { flex: 1 1 100%; margin: 2px 0 0; padding-left: 12px; border-left: 2px solid var(--green); }
-.kids .tr { padding: 6px 0; }
-.editin { width: 100%; font: inherit; font-size: 15px; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--green); border-radius: 8px; padding: 6px 8px; }
+.bt.mv { padding: 2px 6px; display: inline-grid; place-items: center; cursor: grab; border-color: transparent; }
+.bt.mv:active { cursor: grabbing; }
+.confirm { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; background: var(--redbg); border: 1px solid var(--red); border-radius: 8px; padding: 6px 10px; font-size: 13px; }
+.menu { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 4px 0 6px; font-size: 12px; color: var(--text-secondary); }
+.menu input[type="date"] { font: inherit; font-size: 12px; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 1px 4px; color-scheme: inherit; }
+.kids { margin: 0 0 2px 4px; padding-left: 12px; border-left: 2px solid var(--green); }
+.kids .rw + .rw { border-top: 1px solid var(--border); }
+.editin { flex: 1; min-width: 160px; font: inherit; font-size: 14px; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--green); border-radius: 6px; padding: 3px 8px; }
 .empty { margin-top: 18px; color: var(--text-muted); font-size: 14px; }
 .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; box-shadow: 0 4px 16px rgba(0,0,0,.35); display: none; gap: 14px; align-items: center; font-size: 14px; z-index: 20; }
 .toast .bt { color: var(--text-primary); }
@@ -179,7 +188,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   }
   var SAMPLE = ["Sent my first 3 outreach messages", "Friend replied, wants to talk about his Excel work", "Prospect list reached 30 names", "Tested the message on 3 people", "Booked an intro call", "Finished the Skool niche lesson", "Posted my baseline in the community", "Shipped the tracker demo"];
   var nid = 1, entries = [], overrides = {}, skoolC = base.map(function (b) { return b.s0; });
-  var sel = null, flt = "all", editing = null, clubFrom = null, confirmDel = null, undoSnap = null, toastT = null;
+  var sel = null, flt = "all", editing = null, menuFor = null, clubFrom = null, confirmDel = null, undoSnap = null, toastT = null;
   function mk(day, text, time) { return { id: nid++, kind: "win", day: day, text: text, time: time, parent: null }; }
   (function seed() {
     var k = 0;
@@ -261,41 +270,42 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   }
 
   // activity list (wins only)
-  var ICON_WIN = '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 .5l2.2 4.6 5 .7-3.6 3.5.9 5L8 11.9 3.5 14.3l.9-5L.8 5.8l5-.7z"/></svg>';
-  var ICON_GIT = '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 5a3 3 0 100 6 3 3 0 000-6zM1 7.25h3.5v1.5H1zm10.5 0H15v1.5h-3.5z"/></svg>';
+  var ICON_WIN = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 .5l2.2 4.6 5 .7-3.6 3.5.9 5L8 11.9 3.5 14.3l.9-5L.8 5.8l5-.7z"/></svg>';
+  var ICON_GIT = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 5a3 3 0 100 6 3 3 0 000-6zM1 7.25h3.5v1.5H1zm10.5 0H15v1.5h-3.5z"/></svg>';
+  var ICON_MOVE = '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1l3.2 3.6H9V6.2H7V4.6H4.8zM8 15l-3.2-3.6H7V9.8h2v1.6h2.2zM1.5 7.2h1.7v1.6H1.5zm3.4 0h1.7v1.6H4.9zm3.4 0H10v1.6H8.3zm3.4 0h1.7v1.6h-1.7z"/></svg>';
   function matches(e, q) { var d = base[e.day].d; return !q || (fmt(d) + " " + FULL[d.getUTCMonth()] + " " + e.text).toLowerCase().indexOf(q) !== -1; }
   function inDay(e) { return sel === null || e.day === sel || kidsOf(e.id).some(function (k) { return k.day === sel; }); }
   function visibleTop(q) { return entries.filter(function (e) { return !e.parent && inDay(e) && (matches(e, q) || kidsOf(e.id).some(function (k) { return matches(k, q); })); }); }
-  function textHtml(e) {
-    return editing === e.id ? '<input class="editin" data-edit="' + e.id + '" value="' + esc(e.text) + '" maxlength="140" aria-label="Edit the win, Enter to save, Escape to cancel">' : esc(e.text);
+  function isoDay(i) { return base[i].d.toISOString().slice(0, 10); }
+  function menuHtml(e) {
+    return '<div class="menu" role="group" aria-label="Move options"><button class="bt" data-act="up" data-id="' + e.id + '">Move up</button><button class="bt" data-act="down" data-id="' + e.id + '">Move down</button>' +
+      '<label>Move to day <input type="date" class="dateIn" data-id="' + e.id + '" min="' + isoDay(0) + '" max="' + isoDay(DAYS - 1) + '" value="' + isoDay(e.day) + '"></label>' +
+      (e.parent ? '<button class="bt" data-act="unclub" data-id="' + e.id + '">Take out of the win</button>' : '<button class="bt" data-act="club" data-id="' + e.id + '">Club into another win</button>') +
+      '<button class="bt" data-act="closemenu">Close</button></div>';
   }
-  function btns(e, idx, n, isKid) {
-    if (confirmDel === e.id) return "";
-    return '<div class="btns">' + (isKid ? '<button class="bt" data-act="unclub" data-id="' + e.id + '">Unclub</button>' :
-        '<button class="bt arrow" data-act="up" data-id="' + e.id + '"' + (idx === 0 ? " disabled" : "") + ' aria-label="Move up">&uarr;</button>' +
-        '<button class="bt arrow" data-act="down" data-id="' + e.id + '"' + (idx === n - 1 ? " disabled" : "") + ' aria-label="Move down">&darr;</button>' +
-        '<button class="bt" data-act="club" data-id="' + e.id + '">Club</button>') +
-      '<button class="bt ok" data-act="edit" data-id="' + e.id + '">Edit</button>' +
-      '<button class="bt no" data-act="ask" data-id="' + e.id + '">Delete</button></div>';
-  }
-  function confirmHtml(e) {
-    return confirmDel === e.id ? '<div class="confirm" role="alertdialog" aria-label="Confirm delete"><span>Delete this win?</span><button class="bt no solid" data-act="del" data-id="' + e.id + '">Yes, delete</button><button class="bt" data-act="cancel">Cancel</button></div>' : "";
-  }
-  function row(e, idx, n, isKid, pickable) {
-    var kids = isKid ? [] : kidsOf(e.id);
-    return '<div class="tr"' + (pickable ? ' data-act="clubto" data-id="' + e.id + '" tabindex="0" role="button" style="cursor:pointer"' : "") + '>' +
-      '<span class="t">' + textHtml(e) + '</span><span class="m">' + (isKid ? fmt(base[e.day].d) : (e.time || "")) + '</span>' +
-      (kids.length ? '<span class="note2">clubbed, counts as ' + (kids.length + 1) + ' wins</span>' : "") +
-      btns(e, idx, n, isKid) + confirmHtml(e) +
-      (kids.length ? '<div class="kids">' + kids.map(function (k) { return row(k, 0, 0, true, false); }).join("") + '</div>' : "") + '</div>';
+  function row(e, pickable) {
+    var kids = e.parent ? [] : kidsOf(e.id), line;
+    if (editing === e.id) {
+      line = '<input class="editin" data-edit="' + e.id + '" value="' + esc(e.text) + '" maxlength="140" aria-label="Edit the win, Enter to save, Escape to cancel">' +
+        '<span class="btns"><button class="bt ok" data-act="save" data-id="' + e.id + '">Save</button><button class="bt no" data-act="ask" data-id="' + e.id + '">Delete</button><button class="bt" data-act="canceledit">Cancel</button></span>' +
+        (confirmDel === e.id ? '<div class="confirm" role="alertdialog" aria-label="Confirm delete"><span>Delete this win?</span><button class="bt no solid" data-act="del" data-id="' + e.id + '">Yes, delete</button><button class="bt" data-act="cancel">Cancel</button></div>' : "");
+    } else {
+      line = '<span class="t">' + esc(e.text) + '</span><span class="m">' + (e.parent ? esc(fmt(base[e.day].d)) : (e.time || "")) + '</span>' +
+        (kids.length ? '<span class="note2">clubbed, counts as ' + (kids.length + 1) + ' wins</span>' : "") +
+        '<span class="btns"><button class="bt ok" data-act="edit" data-id="' + e.id + '">Edit</button>' +
+        '<button class="bt mv" draggable="true" data-act="menu" data-id="' + e.id + '" aria-label="Move this win. Drag it, or press for options" title="Drag to move, or press for options">' + ICON_MOVE + '</button></span>';
+    }
+    return '<div class="rw"><div class="tr" data-id="' + e.id + '"' + (pickable ? ' data-act="clubto" tabindex="0" role="button" style="cursor:pointer"' : "") + '>' + line + '</div>' +
+      (menuFor === e.id ? menuHtml(e) : "") +
+      (kids.length ? '<div class="kids">' + kids.map(function (k) { return row(k, false); }).join("") + '</div>' : "") + '</div>';
   }
   function commitGroup(i) {
     var x = data[i], o = overrides[i] !== undefined;
     return '<div class="tg"><div class="ic">' + ICON_GIT + '</div><h3><span>Created <b>' + x.commits + '</b> ' + (x.commits === 1 ? "commit" : "commits") + ' on <b>' + esc(fmt(x.d)) + '</b></span><span class="when">' + x.d.getUTCDate() + ' ' + MON[x.d.getUTCMonth()] + '</span></h3>' +
-      '<div class="tr"><span class="t">GitHub says ' + base[i].c0 + (o ? ', you set ' + x.commits : "") + '</span><span class="btns">' +
+      '<div class="rw"><div class="tr"><span class="t">GitHub says ' + base[i].c0 + (o ? ', you set ' + x.commits : "") + '</span><span class="btns">' +
       '<button class="mini" data-act="cstep" data-i="' + i + '" data-d="-1" aria-label="Count one fewer commit on ' + esc(fmt(x.d)) + '"' + (x.commits === 0 ? " disabled" : "") + '>&minus;</button>' +
       '<button class="mini" data-act="cstep" data-i="' + i + '" data-d="1" aria-label="Count one more commit on ' + esc(fmt(x.d)) + '">+</button>' +
-      (o ? '<button class="bt" data-act="creset" data-i="' + i + '">Reset</button>' : "") + '</span></div></div>';
+      (o ? '<button class="bt" data-act="creset" data-i="' + i + '">Reset</button>' : "") + '</span></div></div></div>';
   }
   function monthHead(d) { return '<div class="tmonth"><b>' + FULL[d.getUTCMonth()] + '</b><span>' + d.getUTCFullYear() + '</span></div>'; }
 
@@ -317,8 +327,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
         var d = base[g.day].d, key = d.getUTCFullYear() + "-" + d.getUTCMonth();
         if (key !== lastKey) { html += monthHead(d); lastKey = key; }
         var total = data[g.day].wins;
-        html += '<div class="tg"><div class="ic">' + ICON_WIN + '</div><h3><span><b>' + total + '</b> ' + (total === 1 ? "win" : "wins") + ' on <b>' + esc(fmt(d)) + '</b></span><span class="when">' + d.getUTCDate() + ' ' + MON[d.getUTCMonth()] + '</span></h3>' +
-          g.items.map(function (e, idx) { return row(e, idx, g.items.length, false, clubFrom !== null && clubFrom !== e.id); }).join("") + '</div>';
+        html += '<div class="tg"><div class="ic">' + ICON_WIN + '</div><h3 data-day="' + g.day + '"><span><b>' + total + '</b> ' + (total === 1 ? "win" : "wins") + ' on <b>' + esc(fmt(d)) + '</b></span><span class="when">' + d.getUTCDate() + ' ' + MON[d.getUTCMonth()] + '</span></h3>' +
+          g.items.map(function (e) { return row(e, clubFrom !== null && clubFrom !== e.id); }).join("") + '</div>';
       });
       if (!vis.length) html += '<p class="empty">' + (q ? "No match. Press Enter to add it as a win." : (sel === null ? "No wins yet. Type one above and press Enter." : "No wins on this day.")) + "</p>";
     }
@@ -353,6 +363,20 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     var i = same.findIndex(function (x) { return x.id === id; }), j = i + dir; if (i < 0 || j < 0 || j >= same.length) return;
     var a = entries.indexOf(same[i]), b = entries.indexOf(same[j]), t = entries[a]; entries[a] = entries[b]; entries[b] = t; afterChange();
   }
+  function placeTop(e, day) {
+    entries = entries.filter(function (x) { return x !== e; }); e.parent = null; e.day = day;
+    var at = entries.findIndex(function (x) { return !x.parent && x.day <= day; });
+    if (at < 0) entries.push(e); else entries.splice(at, 0, e);
+  }
+  function placeNear(e, t, after) {
+    entries = entries.filter(function (x) { return x !== e; }); e.parent = null; e.day = t.day;
+    var at = entries.indexOf(t); entries.splice(after ? at + 1 : at, 0, e);
+  }
+  function clubInto(src, dst) {
+    if (!src || !dst || src.id === dst.id || dst.parent === src.id) return false;
+    var root = dst.parent ? byId(dst.parent) : dst; if (!root || root.id === src.id) return false;
+    kidsOf(src.id).forEach(function (k) { k.parent = root.id; }); src.parent = root.id; return true;
+  }
 
   // events
   var qEl = document.getElementById("q");
@@ -374,36 +398,69 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   document.getElementById("stats").addEventListener("keydown", function (e) {
     if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("stat")) { e.preventDefault(); e.target.click(); }
   });
-  var fl = document.getElementById("feedList");
+  var fl = document.getElementById("feedList"), dragId = null, drop = null;
   fl.addEventListener("click", function (e) {
     var b = e.target.closest("[data-act]"); if (!b || b.disabled) return;
     if (b.dataset.act === "clubto" && e.target.closest("button")) return;
     var act = b.dataset.act, id = Number(b.dataset.id), i = Number(b.dataset.i);
-    if (act === "up") swap(id, -1); else if (act === "down") swap(id, 1);
-    else if (act === "edit") { editing = id; confirmDel = null; renderFeed(); }
-    else if (act === "ask") { confirmDel = id; editing = null; renderFeed(); }
+    if (act === "menu") { menuFor = menuFor === id ? null : id; renderFeed(); }
+    else if (act === "closemenu") { menuFor = null; renderFeed(); }
+    else if (act === "up") swap(id, -1); else if (act === "down") swap(id, 1);
+    else if (act === "edit") { editing = id; menuFor = null; confirmDel = null; renderFeed(); }
+    else if (act === "save") { var inp = fl.querySelector(".editin"), en = byId(id); if (inp && en && inp.value.trim()) en.text = inp.value.trim().slice(0, 140); editing = null; confirmDel = null; afterChange(); }
+    else if (act === "canceledit") { editing = null; confirmDel = null; renderFeed(); }
+    else if (act === "ask") { confirmDel = id; renderFeed(); }
     else if (act === "cancel") { confirmDel = null; renderFeed(); }
-    else if (act === "del") removeWin(id);
-    else if (act === "club") { clubFrom = id; confirmDel = null; renderFeed(); }
+    else if (act === "del") { editing = null; removeWin(id); }
+    else if (act === "club") { clubFrom = id; menuFor = null; confirmDel = null; renderFeed(); }
     else if (act === "cancelclub") { clubFrom = null; renderFeed(); }
-    else if (act === "clubto") {
-      var src = byId(clubFrom), dst = byId(id); if (!src || !dst || src.id === dst.id) return;
-      kidsOf(src.id).forEach(function (k) { k.parent = dst.id; }); src.parent = dst.id; clubFrom = null; afterChange(); live.textContent = "Clubbed. Both still count.";
-    }
-    else if (act === "unclub") { var k = byId(id); if (k) { k.parent = null; afterChange(); } }
+    else if (act === "clubto") { if (clubInto(byId(clubFrom), byId(id))) { clubFrom = null; afterChange(); live.textContent = "Clubbed. Both still count."; } }
+    else if (act === "unclub") { var k = byId(id); if (k) { k.parent = null; menuFor = null; afterChange(); } }
     else if (act === "cstep") { var nv = Math.max(0, data[i].commits + Number(b.dataset.d)); if (nv === base[i].c0) delete overrides[i]; else overrides[i] = nv; afterChange(); }
     else if (act === "creset") { delete overrides[i]; afterChange(); }
+  });
+  fl.addEventListener("change", function (e) {
+    if (!e.target.classList || !e.target.classList.contains("dateIn")) return;
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(e.target.value), en = byId(Number(e.target.dataset.id)); if (!m || !en) return;
+    var day = Math.round((Date.UTC(+m[1], +m[2] - 1, +m[3]) - start) / 864e5); if (day < 0 || day >= DAYS) return;
+    placeTop(en, day); menuFor = null; afterChange(); live.textContent = "Moved to " + fmt(base[day].d);
   });
   fl.addEventListener("keydown", function (e) {
     if (e.target.classList.contains("editin")) {
       var id = Number(e.target.dataset.edit);
-      if (e.key === "Enter") { e.preventDefault(); var t = e.target.value.trim(), en = byId(id); if (t && en) en.text = t.slice(0, 140); editing = null; afterChange(); }
-      else if (e.key === "Escape") { editing = null; renderFeed(); }
+      if (e.key === "Enter") { e.preventDefault(); var t = e.target.value.trim(), en = byId(id); if (t && en) en.text = t.slice(0, 140); editing = null; confirmDel = null; afterChange(); }
+      else if (e.key === "Escape") { editing = null; confirmDel = null; renderFeed(); }
     } else if ((e.key === "Enter" || e.key === " ") && e.target.dataset && e.target.dataset.act === "clubto") { e.preventDefault(); e.target.click(); }
   });
+  // drag to move: between rows, onto a day heading, or onto the middle of a win to club
+  function clearDz() { fl.querySelectorAll(".dz-before,.dz-after,.dz-club,.dz-day").forEach(function (n) { n.classList.remove("dz-before", "dz-after", "dz-club", "dz-day"); }); }
+  fl.addEventListener("dragstart", function (e) {
+    var h = e.target.closest ? e.target.closest('[data-act="menu"]') : null; if (!h) return;
+    dragId = Number(h.dataset.id); menuFor = null;
+    try { e.dataTransfer.setData("text/plain", String(dragId)); e.dataTransfer.effectAllowed = "move"; var r = h.closest(".tr"); if (r) { e.dataTransfer.setDragImage(r, 16, 12); setTimeout(function () { r.classList.add("dragging"); }, 0); } } catch (x) {}
+  });
+  fl.addEventListener("dragover", function (e) {
+    if (dragId === null) return;
+    var r = e.target.closest(".tr[data-id]"), hd = e.target.closest("h3[data-day]"); clearDz(); drop = null;
+    if (r && Number(r.dataset.id) !== dragId) {
+      var b = r.getBoundingClientRect(), y = (e.clientY - b.top) / b.height, zone = y < 0.28 ? "before" : y > 0.72 ? "after" : "club";
+      r.classList.add("dz-" + zone); drop = { type: "row", id: Number(r.dataset.id), zone: zone }; e.preventDefault();
+    } else if (hd) { hd.classList.add("dz-day"); drop = { type: "day", day: Number(hd.dataset.day) }; e.preventDefault(); }
+  });
+  fl.addEventListener("drop", function (e) {
+    if (dragId === null || !drop) return; e.preventDefault();
+    var src = byId(dragId), d = drop; dragId = null; drop = null; clearDz(); if (!src) return;
+    if (d.type === "day") { placeTop(src, d.day); afterChange(); live.textContent = "Moved to " + fmt(base[d.day].d); return; }
+    var t = byId(d.id); if (!t || t.id === src.id) { renderFeed(); return; }
+    if (t.parent === src.id) { renderFeed(); return; }
+    if (t.parent || d.zone === "club") { if (clubInto(src, t)) { afterChange(); live.textContent = "Clubbed. Both still count."; } else renderFeed(); return; }
+    placeNear(src, t, d.zone === "after"); afterChange(); live.textContent = "Moved.";
+  });
+  fl.addEventListener("dragend", function () { dragId = null; drop = null; clearDz(); fl.querySelectorAll(".dragging").forEach(function (n) { n.classList.remove("dragging"); }); });
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Escape" || editing !== null) return;
-    if (confirmDel !== null) { confirmDel = null; renderFeed(); }
+    if (menuFor !== null) { menuFor = null; renderFeed(); }
+    else if (confirmDel !== null) { confirmDel = null; renderFeed(); }
     else if (clubFrom !== null) { clubFrom = null; renderFeed(); }
     else if (sel !== null) { sel = null; afterChange(); }
   });
