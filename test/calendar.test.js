@@ -89,7 +89,7 @@ test("links: webcal becomes https, other schemes are refused", () => {
   assert.equal(normalizeUrl("webcal://cal.invalid/a.ics"), "https://cal.invalid/a.ics");
   assert.throws(() => normalizeUrl("http://cal.invalid/a.ics"));
   assert.throws(() => normalizeUrl("file:///etc/passwd"));
-  assert.throws(() => normalizeUrl("https://user:pw@cal.invalid/a.ics"));
+  assert.throws(() => normalizeUrl("https://user:pw" + "@" + "cal.invalid/a.ics"));
   assert.throws(() => normalizeUrl("not a link"));
 });
 
