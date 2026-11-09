@@ -42,7 +42,7 @@ m.forEach(x => new Function(x[1]));
 ' || bad "app/index.html script has a syntax error"
 
 echo "== 3b. Calendar tests"
-node --test test/ || bad "calendar tests failed"
+node --test test/*.test.js || bad "calendar tests failed"
 
 echo "== 4. Start-up smoke test"
 d=$(mktemp -d)
