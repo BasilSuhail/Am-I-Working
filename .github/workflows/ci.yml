@@ -1,0 +1,22 @@
+name: CI
+
+# pull_request (not pull_request_target): code from forks runs with no secrets and a read-only token.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Checks
+        run: bash .github/scripts/check.sh

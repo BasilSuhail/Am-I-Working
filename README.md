@@ -92,3 +92,9 @@ that folder. To change it, set `AMIW_DATA`.
 ## Rules for this repo
 
 No personal data, hostnames, tokens or addresses in any tracked file.
+
+## Contributing
+
+Pull requests are welcome. A check runs on every pull request (privacy scan,
+image metadata, syntax, start-up test). Run it yourself first with
+`bash .github/scripts/check.sh`. Only the owner merges.
