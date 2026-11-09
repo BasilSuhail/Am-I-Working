@@ -281,7 +281,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 
   // grid
   var cells = [], grid = document.getElementById("grid"), tip = document.getElementById("tip");
-  var KEYS = ["commits", "skool", "wins"], FLOOR = { commits: 1, skool: 1, wins: 1 }, CAPS = { commits: 1, skool: 1, wins: 1 }, CL = ["a", "b", "c"];
+  var KEYS = ["commits", "skool", "wins"], FLOOR = { commits: 1, skool: 1, wins: 2 }, CAPS = { commits: 1, skool: 1, wins: 1 }, CL = ["a", "b", "c"];
   function paint(i) {
     var x = data[i], c = cells[i], f = c.querySelectorAll(".fill");
     c.className = "cell" + (i === todayI ? " today" : "") + (i === sel ? " sel" : "");
