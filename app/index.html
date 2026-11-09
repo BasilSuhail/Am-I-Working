@@ -471,7 +471,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     var kids = e.parent ? [] : kidsOf(e.id), line;
     if (editing === e.id) {
       line = '<input class="editin" data-edit="' + e.id + '" value="' + esc(e.text) + '" maxlength="140" aria-label="Edit the win, Enter to save, Escape to cancel"><label class="qtyl">&times;<input type="number" class="qtyin" min="1" max="99" value="' + qty(e) + '" aria-label="How many this win counts for"></label>' +
-        '<span class="btns"><button class="bt ok" data-act="save" data-id="' + e.id + '">Save</button><button class="bt no" data-act="ask" data-id="' + e.id + '">Delete</button><button class="bt" data-act="canceledit">Cancel</button></span>' +
+        '<span class="btns"><button class="bt ok" data-act="save" data-id="' + e.id + '">Save</button><button class="bt no" data-act="ask" data-id="' + e.id + '">Delete</button>' + (e.back ? '<button class="bt" data-act="back" data-id="' + e.id + '">Back on list</button>' : "") + '<button class="bt" data-act="canceledit">Cancel</button></span>' +
         (confirmDel === e.id ? '<div class="confirm" role="alertdialog" aria-label="Confirm delete"><span>Delete this win?</span><button class="bt no solid" data-act="del" data-id="' + e.id + '">Yes, delete</button><button class="bt" data-act="cancel">Cancel</button></div>' : "");
     } else {
       line = '<span class="t"' + (pickable ? "" : ' data-act="open" data-id="' + e.id + '" tabindex="0" role="button" aria-expanded="' + (openId === e.id) + '" title="Click to open the notes" style="cursor:pointer"') + '>' + esc(e.text) + (qty(e) > 1 ? ' <b class="qb">&times;' + qty(e) + '</b>' : "") + (hasNote(e) ? ' <span class="nt">notes</span>' : "") + '</span><span class="m">' + (e.parent ? esc(fmt(base[e.day].d)) : (e.time || "")) + '</span>' +
@@ -595,6 +595,12 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     if (at < 0) entries.push(e); else entries.splice(at, 0, e);
     afterChange(); popDay(day); live.textContent = "Win added to " + fmt(base[day].d);
   }
+  function todoWin(text, back) {
+    var day = todayI, e = mk(day, text, hhmm()); e.back = back;
+    var at = entries.findIndex(function (x) { return !x.parent && x.day <= day; });
+    if (at < 0) entries.push(e); else entries.splice(at, 0, e);
+    afterChange(); popDay(day);
+  }
   function removeWin(id) {
     var e = byId(id); if (!e) return; var before = snap();
     kidsOf(id).forEach(function (k) { k.parent = null; });
@@ -664,6 +670,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     else if (act === "ask") { confirmDel = id; renderFeed(); }
     else if (act === "cancel") { confirmDel = null; renderFeed(); }
     else if (act === "del") { editing = null; removeWin(id); }
+    else if (act === "back") { var bw = byId(id); if (bw && bw.back && window.AMIW.restoreItem(bw.back)) { editing = null; kidsOf(id).forEach(function (k) { k.parent = null; }); entries = entries.filter(function (x) { return x.id !== id; }); afterChange(); live.textContent = "Back on the list."; } else live.textContent = "That list is gone, so it cannot go back."; }
     else if (act === "club") { clubFrom = id; menuFor = null; confirmDel = null; renderFeed(); }
     else if (act === "cancelclub") { clubFrom = null; renderFeed(); }
     else if (act === "clubto") { if (clubInto(byId(clubFrom), byId(id))) { clubFrom = null; afterChange(); live.textContent = "Clubbed. Both still count."; } }
@@ -856,7 +863,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
       .catch(function () { setStatus("Refresh failed. Check the connection.", true); })
       .then(function () { btn.disabled = false; btn.textContent = "Refresh"; });
   };
-  window.AMIW = { autoWin: autoWin, removeAuto: removeAuto, getLists: function () { return listsState; }, saveLists: function (l) { listsState = l; save(); } };
+  window.AMIW = { todoWin: todoWin, autoWin: autoWin, removeAuto: removeAuto, getLists: function () { return listsState; }, saveLists: function (l) { listsState = l; save(); } };
   var sc = document.getElementById("chartScroll"); sc.scrollLeft = sc.scrollWidth;
 })();
 </script>
@@ -917,9 +924,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
       return '<div class="lc pin"><div class="lh"><span class="pinlab">Pinned</span></div><div class="lf"><textarea data-a="ptext" data-l="' + l.id + '" maxlength="400" aria-label="Pinned message">' + esc(l.text) + '</textarea></div>' + delRow(l) + "</div>";
     }
     var k = nowIso(), total = l.items.length, done = l.type === "habits" ? l.items.filter(function (i) { return (l.log[k] || {})[i.id]; }).length : l.items.filter(function (i) { return i.done; }).length;
-    var sub = l.type === "habits" ? done + " of " + total + " today" + (streak(l) ? " &middot; streak " + streak(l) : "") : done + " of " + total + " done";
+    var sub = l.type === "todo" && l.imp !== false ? total + " to go &middot; each one ticked is a win" : l.type === "habits" ? done + " of " + total + " today" + (streak(l) ? " &middot; streak " + streak(l) : "") : done + " of " + total + " done";
     h += '<div class="lc"><div class="lh"><span class="lt">' + esc(l.title) + "<small>" + sub + "</small></span>" + (edit ? '<button class="lb ok" data-a="done" data-l="' + l.id + '">Done</button>' : '<button class="lb" data-a="edit" data-l="' + l.id + '">Edit</button>') + "</div>";
-    h += '<div class="meter" aria-hidden="true"><i style="width:' + (total ? done / total * 100 : 0) + '%"></i></div>';
+    if (!(l.type === "todo" && l.imp !== false)) h += '<div class="meter" aria-hidden="true"><i style="width:' + (total ? done / total * 100 : 0) + '%"></i></div>';
     if (edit) {
       h += '<div class="lf"><label>Name<input type="text" data-a="title" data-l="' + l.id + '" value="' + esc(l.title) + '" maxlength="60"></label>' +
 '</div>';
@@ -936,11 +943,12 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   function newPanel() {
     if (!creating) return '<button class="newbtn" data-a="new">+ New list</button>';
     if (!creating.type) return '<div class="lc"><div class="lh"><span class="lt">What is it?</span><button class="lb" data-a="cancelnew">Cancel</button></div>' +
-      '<button class="kind" data-a="kind" data-k="todo">To-do list<small>Things to tick off. Any item can have its own timer or date.</small></button>' +
+      '<button class="kind" data-a="kind" data-k="todo" data-imp="1">Important to-do list<small>Big tasks. Tick one and it leaves the list and counts as a win, named after the task.</small></button>' +
+      '<button class="kind" data-a="kind" data-k="todo" data-imp="0">Plain list<small>Not important. Things to see or tick off. No wins.</small></button>' +
       '<button class="kind" data-a="kind" data-k="pin">Pinned message<small>Stays at the top of this column.</small></button>' +
       '<button class="kind" data-a="kind" data-k="habits">Habit tracker<small>Fresh every day. Finish them all and it posts a win.</small></button></div>';
     var t = creating.type;
-    return '<div class="lc"><div class="lh"><span class="lt">New ' + (t === "todo" ? "to-do list" : t === "pin" ? "pinned message" : "habit tracker") + '</span><button class="lb" data-a="cancelnew">Cancel</button></div><div class="lf">' +
+    return '<div class="lc"><div class="lh"><span class="lt">New ' + (t === "todo" ? (creating.imp ? "important to-do list" : "plain list") : t === "pin" ? "pinned message" : "habit tracker") + '</span><button class="lb" data-a="cancelnew">Cancel</button></div><div class="lf">' +
       (t === "pin" ? '<label>Message<textarea id="nText" maxlength="400"></textarea></label>' : '<label>Name<input type="text" id="nTitle" maxlength="60"></label>') +
       '</div><div class="lrow"><button class="lb ok" data-a="create">Create</button></div></div>';
   }
@@ -955,6 +963,10 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     var a = b.dataset.a, l = L(Number(b.dataset.l)), iid = Number(b.dataset.i);
     if (a === "tick" && l) {
       if (l.type === "habits") { var k = nowIso(); l.log[k] = l.log[k] || {}; l.log[k][iid] = !l.log[k][iid]; habitCheck(l); }
+      else if (l.type === "todo" && l.imp !== false) {
+        var it = l.items.filter(function (i) { return i.id === iid; })[0];
+        if (it && window.AMIW) { l.items = l.items.filter(function (i) { return i !== it; }); window.AMIW.todoWin(it.text, { l: l.id, i: { id: it.id, text: it.text, due: it.due } }); }
+      }
       else l.items.forEach(function (i) { if (i.id === iid) i.done = !i.done; });
     } else if (a === "edit") { editId = l.id; askDel = null; }
     else if (a === "done") { editId = null; askDel = null; if (l && l.type === "habits") habitCheck(l); }
@@ -963,11 +975,11 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     else if (a === "ask") askDel = l.id; else if (a === "nodel") askDel = null;
     else if (a === "del" && l) { st.lists = st.lists.filter(function (x) { return x.id !== l.id; }); editId = null; askDel = null; }
     else if (a === "new") creating = {}; else if (a === "cancelnew") creating = null;
-    else if (a === "kind") creating = { type: b.dataset.k };
+    else if (a === "kind") creating = { type: b.dataset.k, imp: b.dataset.imp !== "0" };
     else if (a === "create") {
       var t = creating.type, nl = { id: st.nid++, type: t };
       if (t === "pin") { var tx = (document.getElementById("nText").value || "").trim(); if (!tx) return; nl.text = tx.slice(0, 400); }
-      else { var ti = (document.getElementById("nTitle").value || "").trim(); if (!ti) return; nl.title = ti.slice(0, 60); nl.items = []; if (t === "habits") { nl.log = {}; nl.wins = {}; } }
+      else { var ti = (document.getElementById("nTitle").value || "").trim(); if (!ti) return; nl.title = ti.slice(0, 60); nl.items = []; if (t === "todo") nl.imp = creating.imp; if (t === "habits") { nl.log = {}; nl.wins = {}; } }
       st.lists.push(nl); creating = null; if (t !== "pin") editId = nl.id;
     } else return;
     save(); render();
@@ -989,6 +1001,11 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     save();
   });
   setInterval(function () { if (!st) return; var ae = document.activeElement; if (editId === null && !creating && !(ae && side.contains(ae))) render(); }, 30000);
+  window.AMIW.restoreItem = function (b) {
+    var l = st && L(b.l); if (!l) return false;
+    var it = { id: b.i.id, text: b.i.text, done: false }; if (b.i.due) it.due = b.i.due;
+    l.items.push(it); save(); render(); return true;
+  };
   function boot() {
     st = window.AMIW.getLists();
     var seeded = !Array.isArray(st.lists);

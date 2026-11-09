@@ -35,8 +35,11 @@ The page has two columns. Everything is saved the moment you change it.
 
 **Left column**
 - **Pinned message:** a note that stays on top. Click **Edit** to change it.
-- **To do list:** type in the box and press Enter. Tick the box when done. An item
-  can also have a date or timer.
+- **To do list:** type in the box and press Enter. An item can have a date or timer.
+  When you make a list it asks: **Important** or **Plain**. On an important list,
+  every task you tick leaves the list and becomes a win today, named after the task.
+  Ticked by mistake? Click **Edit** on that win and press **Back on list**. A plain
+  list just stays put and ticks off, with no wins.
 - **Habit tracker:** tick each habit once a day. It starts fresh every day. Tick
   them all and it records a win for you.
 - **+ New list:** add another list.
