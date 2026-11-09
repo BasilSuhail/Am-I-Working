@@ -854,6 +854,12 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
       if (st && Number(st.rev) !== rev && !dirty && !inflight) { applyState(st); repaint(); document.dispatchEvent(new Event("amiw-ready")); setStatus("Updated from another device"); }
     }).catch(function () {});
   });
+  // wins, commits and Skool roll over at midnight; if the page was left open across midnight, reload it onto the new day
+  var loadedDay = Math.floor(end / 864e5);
+  function dayRolled() { var n = new Date(); return Math.floor(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) / 864e5) !== loadedDay; }
+  function rollCheck() { if (ready && !dirty && !inflight && dayRolled()) location.reload(); }
+  setInterval(rollCheck, 60000);
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") rollCheck(); });
   document.getElementById("refreshBtn").onclick = function () {
     var btn = this; if (!ready) return; btn.disabled = true; btn.textContent = "Refreshing"; clearTimeout(saveT);
     (dirty ? flush() : Promise.resolve()).then(function () { return fetch("/api/state", { headers: { "X-AMIW": "1" } }); })
@@ -872,7 +878,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 (function () {
   var side = document.getElementById("side");
   var st = null, editId = null, askDel = null, creating = null;
-  function nowIso() { var n = new Date(); return n.getFullYear() + "-" + ("0" + (n.getMonth() + 1)).slice(-2) + "-" + ("0" + n.getDate()).slice(-2); }
+  function nowIso() { var n = new Date(Date.now() - 4 * 36e5); /* habits only: their day ends at 4am, so a late tick counts for yesterday */ return n.getFullYear() + "-" + ("0" + (n.getMonth() + 1)).slice(-2) + "-" + ("0" + n.getDate()).slice(-2); }
   function seed() {
     return { nid: 10, lists: [
       { id: 1, type: "pin", text: "I turn messy data into systems people pay for, and I reach out to one person every day, even when I'm tired." },
@@ -894,7 +900,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     return '<span class="due">' + left + " &middot; " + when + "</span>";
   }
   function streak(l) {
-    var n = 0, d = new Date(); d.setHours(12, 0, 0, 0);
+    var n = 0, d = new Date(Date.now() - 4 * 36e5); d.setHours(12, 0, 0, 0);
     function key(x) { return x.getFullYear() + "-" + ("0" + (x.getMonth() + 1)).slice(-2) + "-" + ("0" + x.getDate()).slice(-2); }
     function full(k) { var g = l.log[k] || {}; return l.items.length > 0 && l.items.every(function (i) { return g[i.id]; }); }
     if (!full(key(d))) d = new Date(d.getTime() - 864e5);
