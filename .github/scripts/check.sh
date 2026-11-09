@@ -31,6 +31,7 @@ done
 
 echo "== 3. Syntax"
 node --check app/server.js || bad "app/server.js has a syntax error"
+node --check app/calendar.js || bad "app/calendar.js has a syntax error"
 bash -n app/install.sh || bad "app/install.sh has a syntax error"
 bash -n start-mac.command || bad "start-mac.command has a syntax error"
 node -e '
@@ -39,6 +40,9 @@ const m = [...h.matchAll(/<script>([\s\S]*?)<\/script>/g)];
 if (!m.length) { console.error("no inline script found"); process.exit(1); }
 m.forEach(x => new Function(x[1]));
 ' || bad "app/index.html script has a syntax error"
+
+echo "== 3b. Calendar tests"
+node --test test/*.test.js || bad "calendar tests failed"
 
 echo "== 4. Start-up smoke test"
 d=$(mktemp -d)
