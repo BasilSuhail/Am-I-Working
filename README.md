@@ -1,8 +1,8 @@
 # Am I Working
 
 A private daily tracker that runs on your own computer. One page shows whether you
-actually worked today: a calendar grid, a to-do list, a habit tracker, pinned
-reminders and notes. Nothing is sent anywhere. Your data stays in a folder on your
+actually worked today: a day grid, your calendars (Google, Apple and others),
+a to-do list, a habit tracker, pinned reminders and notes. Nothing is sent anywhere. Your data stays in a folder on your
 machine.
 
 ![Main page](docs/main-page.png)
@@ -31,19 +31,23 @@ Keep the black window open while you use it. Close it to stop.
 
 ## 4. Use it
 
-The page has two columns. Everything is saved the moment you change it.
+The page has three columns: your lists on the left, the grid and your wins in the
+middle, and your calendar on the right. Everything is saved the moment you change it.
 
 **Left column**
 - **Pinned message:** a note that stays on top. Click **Edit** to change it.
-- **To do list:** type in the box and press Enter. Tick the box when done. An item
-  can also have a date or timer.
+- **To do list:** type in the box and press Enter. An item can have a date or timer.
+  When you make a list it asks: **Important** or **Plain**. On an important list,
+  every task you tick leaves the list and becomes a win today, named after the task.
+  Ticked by mistake? Click **Edit** on that win and press **Back on list**. A plain
+  list just stays put and ticks off, with no wins.
 - **Habit tracker:** tick each habit once a day. It starts fresh every day. Tick
   them all and it records a win for you.
 - **+ New list:** add another list.
 
 ![Adding a list](docs/new-list.png)
 
-**Right column**
+**Middle column**
 - **The grid:** one square per day. Each square has up to three bars: blue =
   commits, orange = Skool, green = wins. Hover a square to see the numbers. Click
   a day to see only that day.
@@ -72,7 +76,9 @@ Click the gear next to **Refresh**. Everything below is saved on your computer.
 
 ## The calendar
 
-On a wide screen the calendar sits to the right of the grid, using the same boxes as the grid. Click a day to see its events below, hour by hour. Click an event for its details. The quiet hours before 7 am are folded away until you open them. Every event the app has ever seen is also kept in a local copy, even if you later delete it from your calendar.
+On a wide screen the calendar sits to the right of the grid, using the same boxes as the grid. Click a day to see its events below, hour by hour. Click an event for its details. Web links inside an event open in a new tab. The quiet hours before 7 am are folded away until you open them, and the day starts earlier by itself if you have an event then. Every event the app has ever seen is also kept in a local copy, even if you later delete it from your calendar.
+
+The page above is the whole app. Left: pinned message, to-do list, habits. Middle: the grid and wins. Right: the month and the day you clicked. Personal text in the picture is blurred.
 
 ## The Refresh button colour
 
