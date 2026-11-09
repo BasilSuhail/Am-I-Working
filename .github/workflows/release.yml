@@ -1,0 +1,30 @@
+name: Release
+
+# Runs only when the owner pushes a version tag such as v1.0.0.
+# It runs the same checks, builds one zip, and attaches it to a GitHub Release.
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Checks
+        run: bash .github/scripts/check.sh
+      - name: Build the zip
+        run: bash .github/scripts/package.sh "${GITHUB_REF_NAME}"
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" "dist/am-i-working-${GITHUB_REF_NAME}.zip" \
+            --repo "${GITHUB_REPOSITORY}" --title "${GITHUB_REF_NAME}" --generate-notes

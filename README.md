@@ -9,7 +9,7 @@ machine.
 
 ## 1. Download
 
-1. Click the green **Code** button at the top of this page, then **Download ZIP**.
+1. Open the **Releases** page (right side of this page) and download `am-i-working-vX.Y.Z.zip` from the newest release. Every version stays there, so you can always go back to an older one. (The green **Code** button also works but gives you unfinished work.)
 2. Open the downloaded ZIP so it becomes a folder. Put the folder somewhere you
    will find it (for example, Documents).
 
@@ -119,6 +119,10 @@ To change it, set `AMIW_DATA`.
 ## Rules for this repo
 
 No personal data, hostnames, tokens or addresses in any tracked file.
+
+## Versions
+
+Releases are named `vMAJOR.MINOR.PATCH` (for example `v1.0.0`). A release never changes after it is published. New work happens on `main` and only becomes a release when the owner tags it, so the download you picked keeps working exactly as it did. Your data lives outside the app folder, so moving to a newer version keeps it. See `CHANGELOG.md`.
 
 ## Contributing
 
