@@ -126,6 +126,12 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 .ned:empty::before { content: attr(data-ph); color: var(--text-muted); }
 .ned h3 { font-size: 15px; margin: 6px 0 2px; min-height: 0; display: block; }
 .ned ul, .ned ol { margin: 4px 0; padding-left: 22px; }
+.ned li > ul, .ned li > ol { margin: 2px 0; }
+.ned ol ol { list-style-type: lower-alpha; }
+.ned ol ol ol { list-style-type: lower-roman; }
+.ned ol ol ol ol { list-style-type: decimal; }
+.ned ul ul { list-style-type: circle; }
+.ned ul ul ul { list-style-type: square; }
 .ned ul.todo { list-style: none; padding-left: 0; }
 .ned ul.todo li { position: relative; padding-left: 26px; margin: 3px 0; }
 .ned ul.todo li::before { content: ""; position: absolute; left: 2px; top: 4px; width: 15px; height: 15px; border: 1.5px solid var(--text-muted); border-radius: 4px; cursor: pointer; }
@@ -597,6 +603,38 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     if (li.tagName === "LI" && li.parentNode.classList && li.parentNode.classList.contains("todo") && e.offsetX < 26) {
       if (li.getAttribute("data-done") === "1") li.removeAttribute("data-done"); else li.setAttribute("data-done", "1");
       var ed2 = li.closest(".ned"); if (ed2) noteSaved(ed2);
+    }
+  });
+  // Tab / Shift+Tab inside a list item nests or un-nests it (1. then a. then i.). Escape leaves the box so Tab can move on.
+  function listOf(li) { return li.parentNode; }
+  function nestLi(li) {
+    var prev = li.previousElementSibling; if (!prev || prev.tagName !== "LI") return false;
+    var src = listOf(li), sub = prev.lastElementChild;
+    if (!sub || (sub.tagName !== "UL" && sub.tagName !== "OL")) { sub = document.createElement(src.tagName.toLowerCase()); if (src.className) sub.className = src.className; prev.appendChild(sub); }
+    sub.appendChild(li); return true;
+  }
+  function unnestLi(li) {
+    var src = listOf(li), host = src.parentNode; if (!host || host.tagName !== "LI") return false;
+    var after = []; for (var s = li.nextElementSibling; s; s = s.nextElementSibling) after.push(s);
+    if (after.length) {
+      var own = li.lastElementChild;
+      if (!own || (own.tagName !== "UL" && own.tagName !== "OL")) { own = document.createElement(src.tagName.toLowerCase()); if (src.className) own.className = src.className; li.appendChild(own); }
+      after.forEach(function (n) { own.appendChild(n); });
+    }
+    host.parentNode.insertBefore(li, host.nextSibling);
+    if (!src.children.length) src.parentNode.removeChild(src);
+    return true;
+  }
+  fl.addEventListener("keydown", function (e) {
+    var t = e.target; if (!t.classList || !t.classList.contains("ned")) return;
+    if (e.key === "Escape") { t.blur(); return; }
+    if (e.key !== "Tab" || e.ctrlKey || e.metaKey || e.altKey) return;
+    var el = curEl(), li = el && el.closest ? el.closest("li") : null; if (!li || !t.contains(li)) return;
+    e.preventDefault();
+    var sl = window.getSelection(), r = sl.rangeCount ? sl.getRangeAt(0) : null, sc = r && r.startContainer, so = r && r.startOffset, ec = r && r.endContainer, eo = r && r.endOffset;
+    if (e.shiftKey ? unnestLi(li) : nestLi(li)) {
+      if (r) { try { var nr = document.createRange(); nr.setStart(sc, so); nr.setEnd(ec, eo); sl.removeAllRanges(); sl.addRange(nr); } catch (x) { /* caret already inside the moved item */ } }
+      noteSaved(t);
     }
   });
   fl.addEventListener("keydown", function (e) {
