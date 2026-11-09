@@ -161,6 +161,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 .note { margin-top: 24px; color: var(--text-muted); font-size: 13px; }
 @media (max-width: 560px) { .count { display: none; } .skoolctl .td { display: none; } }
 
+.pop2 a { color: var(--s1); text-decoration: underline; overflow-wrap: anywhere; }
 /* ---- left lists column ---- */
 .page { display: block; }
 .wrap { position: relative; }
@@ -1150,12 +1151,19 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     el.querySelectorAll(".eb").forEach(function (n) { var x = L[+n.dataset.i]; bind(n, x, clock(x.startMs) + " to " + clock(x.endMs)); });
   }
   var pop = document.createElement("div"); pop.className = "pop2"; document.body.appendChild(pop);
+  // text with clickable web links: escape first, then wrap only http(s) addresses
+  function linkify(t) {
+    return esc(t).replace(/https?:\/\/[^\s<]+/g, function (u) {
+      var tail = (u.match(/[.,;:!?)\]]+$/) || [""])[0]; if (tail) u = u.slice(0, -tail.length);
+      return '<a href="' + u + '" target="_blank" rel="noopener noreferrer">' + u + "</a>" + tail;
+    });
+  }
   function showPop(anchor, x, when) {
     var ev = x.ev, c = colorOf(ev.cal), dt = new Date(sel.y, sel.m, sel.d);
     pop.innerHTML = '<div class="p1"><b>' + esc(ev.title) + '</b><span class="src2"><i class="dot" style="background:' + esc(c) + '"></i>' + esc(nameOf(ev.cal)) + "</span></div>" +
-      '<div class="loc">' + (ev.loc ? esc(ev.loc) : "No location") + "</div>" +
+      '<div class="loc">' + (ev.loc ? linkify(ev.loc) : "No location") + "</div>" +
       '<div class="rows">' + esc(WD[dt.getDay()] + " " + dt.getDate() + " " + MN[dt.getMonth()].slice(0, 3) + " " + dt.getFullYear()) + "\n" + esc(when) + (ev.rep ? "\nRepeats" : "") + "</div>" +
-      '<div class="rows m">' + (ev.notes ? esc(ev.notes.slice(0, 600)) : "No notes") + "</div>";
+      '<div class="rows m">' + (ev.notes ? linkify(ev.notes.slice(0, 600)) : "No notes") + "</div>";
     pop.style.display = "block";
     var r = anchor.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight, left = r.left - w - 12;
     if (left < 8) left = Math.min(innerWidth - w - 8, r.right + 12);
