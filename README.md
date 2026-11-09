@@ -56,17 +56,35 @@ The page has two columns. Everything is saved the moment you change it.
 
 ![Hovering a day](docs/commits.png)
 
-## Commits (optional)
+## Settings (the gear button)
 
-To fill the blue bars from GitHub, set `GITHUB_TOKEN` (a read-only token) and
-`GITHUB_LOGIN` (your username) before starting. Skip this and everything else
-still works.
+Click the gear next to **Refresh**. Everything below is saved on your computer.
+
+- **Theme:** System (follows your computer), Light, Dark or Paper (warm yellow).
+- **GitHub commits:** type your GitHub username and paste a read-only token. The blue bars in the grid then fill in by themselves. Skip it and everything else still works. The token is saved on your computer and the page never shows it again.
+- **Calendars:** paste a calendar link, give it a name and a colour, press **Add calendar**.
+  - **Google:** open Google Calendar on a computer, Settings, click your calendar, Integrate calendar, copy the **Secret address in iCal format**.
+  - **Apple:** in the Calendar app, right-click a calendar, **Share Calendar**, tick **Public Calendar**, copy the link.
+  - Any other calendar that gives you an `.ics` or `webcal://` link works too.
+  - Treat these links like passwords. Anyone who has one can read that calendar.
+  - Links are read-only. The app only reads your calendar, it never changes it.
+  - Google and Apple decide how fast a link shows changes, from minutes to a few hours. The app checks the links every 5 minutes.
+
+## The calendar
+
+On a wide screen the calendar sits to the right of the grid, using the same boxes as the grid. Click a day to see its events below, hour by hour. Click an event for its details. The quiet hours before 7 am are folded away until you open them. Every event the app has ever seen is also kept in a local copy, even if you later delete it from your calendar.
+
+## The Refresh button colour
+
+Refresh re-reads everything (the page, GitHub and your calendars). Its colour tells you how the last sync went: **green** means everything synced, **red** means something failed (open the gear to see which), **amber** means it is working, and no colour means nothing is connected yet.
 
 ## Where is my data?
 
 In a folder called `.am-i-working` in your home folder. It is never inside this
-project, so downloading or updating the app never touches it. To back up, copy
-that folder. To change it, set `AMIW_DATA`.
+project, so downloading or updating the app never touches it. It holds your tracker
+data, your settings (including the GitHub token and calendar links, kept private to
+your user) and the local copy of your calendars. To back up, copy that folder.
+To change it, set `AMIW_DATA`.
 
 ## Settings (all optional)
 
@@ -75,7 +93,8 @@ that folder. To change it, set `AMIW_DATA`.
 | `PORT` | 8788 | Port the page runs on |
 | `HOST` | 127.0.0.1 | Only this computer can open it |
 | `AMIW_DATA` | `~/.am-i-working` | Where data is saved |
-| `GITHUB_TOKEN`, `GITHUB_LOGIN` | none | Fill the commits bar |
+| `GITHUB_TOKEN`, `GITHUB_LOGIN` | none | Fill the commits bar (or set them under the gear) |
+| `CALENDAR_SYNC_MINUTES` | 5 | How often calendar links are re-read |
 | `COMMITS_TTL_HOURS` | 24 | How often commits are re-fetched |
 
 ## Run it all the time (Linux, advanced)
@@ -86,6 +105,8 @@ that folder. To change it, set `AMIW_DATA`.
 
 - `app/index.html`: the whole page
 - `app/server.js`: the small server, no extra packages needed
+- `app/calendar.js`: reads calendar links and works out the events for each day
+- `test/`: automatic tests for the calendar code
 - `design/`: early design samples with made-up data
 - `docs/`: the pictures above (personal text blurred)
 
@@ -96,5 +117,5 @@ No personal data, hostnames, tokens or addresses in any tracked file.
 ## Contributing
 
 Pull requests are welcome. A check runs on every pull request (privacy scan,
-image metadata, syntax, start-up test). Run it yourself first with
+image metadata, syntax, calendar tests, start-up test). Run it yourself first with
 `bash .github/scripts/check.sh`. Only the owner merges.
