@@ -5,7 +5,7 @@ actually worked today: a day grid, your calendars (Google, Apple and others),
 a to-do list, a habit tracker, pinned reminders and notes. Nothing is sent anywhere. Your data stays in a folder on your
 machine.
 
-![Main page](docs/main-page.png)
+![Main page](docs/main-page-v2.png)
 
 ## 1. Download
 
