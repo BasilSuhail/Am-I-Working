@@ -127,6 +127,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 .ned h3 { font-size: 15px; margin: 6px 0 2px; min-height: 0; display: block; }
 .ned ul, .ned ol { margin: 4px 0; padding-left: 22px; }
 .ned li > ul, .ned li > ol { margin: 2px 0; }
+.ned > ol > li::marker { font-weight: 700; }
 .ned ol ol { list-style-type: lower-alpha; }
 .ned ol ol ol { list-style-type: lower-roman; }
 .ned ol ol ol ol { list-style-type: decimal; }
@@ -350,8 +351,15 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
         if (ALLOW[t]) {
           var n = document.createElement(t.toLowerCase());
           if (t === "UL" && c.classList.contains("todo")) n.className = "todo";
+          if (t === "OL") { var st = parseInt(c.getAttribute("start"), 10); if (st > 1 && st < 10000) n.setAttribute("start", String(st)); }
           if (t === "LI" && c.getAttribute("data-done") === "1") n.setAttribute("data-done", "1");
-          cleanInto(c, n); out.appendChild(n);
+          cleanInto(c, n);
+          // a list sitting straight inside a list is not valid: tuck it into the item above so it nests properly
+          var host = out;
+          if ((t === "UL" || t === "OL") && (out.tagName === "UL" || out.tagName === "OL")) {
+            host = out.lastElementChild && out.lastElementChild.tagName === "LI" ? out.lastElementChild : out.appendChild(document.createElement("li"));
+          }
+          host.appendChild(n);
         } else cleanInto(c, out);
       }
     });
@@ -431,6 +439,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
       if (!vis.length) html += '<p class="empty">' + (q ? "No match. Press Enter to add it as a win." : (sel === null ? "No wins yet. Type one above and press Enter." : "No wins on this day.")) + "</p>";
     }
     document.getElementById("feedList").innerHTML = html;
+    var notesEd = document.querySelector(".ned"); if (notesEd) renumber(notesEd);
     var ed = document.querySelector(".editin"); if (ed) { ed.focus(); ed.setSelectionRange(ed.value.length, ed.value.length); }
     attachRO();
   }
@@ -575,8 +584,22 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     else if (act === "creset") { delete overrides[i]; afterChange(); }
   });
   function curEl() { var sl = window.getSelection(), n = sl && sl.anchorNode; return n ? (n.nodeType === 1 ? n : n.parentNode) : null; }
+  // numbered lists that are only a blank line apart carry on counting (1, 2, 3 for headings), text between them restarts at 1
+  function isBlank(n) { return n.nodeType === 1 ? (/^(DIV|P|BR)$/.test(n.tagName) && !n.textContent.trim() && !n.querySelector("ol,ul,li")) : !n.nodeValue.trim(); }
+  function renumber(ed) {
+    var run = 1, last = null, gap = true;
+    Array.prototype.forEach.call(ed.childNodes, function (c) {
+      if (c.nodeType === 1 && c.tagName === "OL") {
+        var want = last && gap ? run : 1;
+        if (want > 1) { if (c.getAttribute("start") !== String(want)) c.setAttribute("start", String(want)); }
+        else if (c.hasAttribute("start")) c.removeAttribute("start");
+        run = want + c.children.length; last = c; gap = true;
+      } else if (!isBlank(c)) { last = null; gap = false; }
+    });
+  }
   function noteSaved(ed) {
     var en = byId(Number(ed.dataset.id)); if (!en) return;
+    renumber(ed);
     var html = sanitize(ed.innerHTML); en.note = html; en.rich = true;
     if (!hasNote(en) && !/<li/.test(html)) { delete en.note; delete en.rich; }
     save();
@@ -607,21 +630,28 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   });
   // Tab / Shift+Tab inside a list item nests or un-nests it (1. then a. then i.). Escape leaves the box so Tab can move on.
   function listOf(li) { return li.parentNode; }
+  function isList(n) { return !!n && (n.tagName === "UL" || n.tagName === "OL"); }
   function nestLi(li) {
-    var prev = li.previousElementSibling; if (!prev || prev.tagName !== "LI") return false;
-    var src = listOf(li), sub = prev.lastElementChild;
-    if (!sub || (sub.tagName !== "UL" && sub.tagName !== "OL")) { sub = document.createElement(src.tagName.toLowerCase()); if (src.className) sub.className = src.className; prev.appendChild(sub); }
+    var prev = li.previousElementSibling; if (!prev) return false;
+    var src = listOf(li), sub;
+    if (isList(prev)) sub = prev;                       // a list that sits straight inside the list
+    else if (prev.tagName === "LI") {
+      sub = prev.lastElementChild;
+      if (!isList(sub)) { sub = document.createElement(src.tagName.toLowerCase()); if (src.className) sub.className = src.className; prev.appendChild(sub); }
+    } else return false;
     sub.appendChild(li); return true;
   }
   function unnestLi(li) {
-    var src = listOf(li), host = src.parentNode; if (!host || host.tagName !== "LI") return false;
+    var src = listOf(li), host = src.parentNode; if (!host) return false;
+    var viaItem = host.tagName === "LI";
+    if (!viaItem && !isList(host)) return false;
     var after = []; for (var s = li.nextElementSibling; s; s = s.nextElementSibling) after.push(s);
     if (after.length) {
       var own = li.lastElementChild;
-      if (!own || (own.tagName !== "UL" && own.tagName !== "OL")) { own = document.createElement(src.tagName.toLowerCase()); if (src.className) own.className = src.className; li.appendChild(own); }
+      if (!isList(own)) { own = document.createElement(src.tagName.toLowerCase()); if (src.className) own.className = src.className; li.appendChild(own); }
       after.forEach(function (n) { own.appendChild(n); });
     }
-    host.parentNode.insertBefore(li, host.nextSibling);
+    if (viaItem) host.parentNode.insertBefore(li, host.nextSibling); else host.insertBefore(li, src.nextSibling);
     if (!src.children.length) src.parentNode.removeChild(src);
     return true;
   }
