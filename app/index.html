@@ -574,11 +574,23 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   function save() { if (!ready) return; dirty = true; setStatus("Saving"); clearTimeout(saveT); saveT = setTimeout(flush, 500); }
   window.addEventListener("pagehide", function () { if (ready && dirty) { try { fetch("/api/state", { method: "PUT", keepalive: true, headers: { "Content-Type": "application/json", "X-AMIW": "1" }, body: JSON.stringify(stateOut()) }); } catch (x) {} } });
   function afterChange() { recompute(); for (var i = 0; i < DAYS; i++) paint(i); renderStats(); renderFeed(); save(); }
-  function autoWin(text, tag) {
+  // an automatic win belongs to the day its habits belong to (a habit day ends at 4am), not to the clock's day
+  function dayOfKey(k) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(k || ""), i = m ? Math.round((Date.UTC(+m[1], +m[2] - 1, +m[3]) - start) / 864e5) : -1;
+    return i >= 0 && i <= todayI ? i : todayI;
+  }
+  function placeWin(e) {
+    var at = entries.findIndex(function (x) { return !x.parent && x.day <= e.day; }); if (at < 0) entries.push(e); else entries.splice(at, 0, e);
+  }
+  function autoWin(text, tag, dayKey) {
     if (entries.some(function (e) { return e.auto === tag; })) return;
-    var e = mk(todayI, text, hhmm()); e.auto = tag;
-    var at = entries.findIndex(function (x) { return !x.parent && x.day <= todayI; }); if (at < 0) entries.push(e); else entries.splice(at, 0, e);
-    afterChange(); popDay(todayI);
+    var day = dayOfKey(dayKey), e = mk(day, text, hhmm()); e.auto = tag;
+    placeWin(e); afterChange(); popDay(day);
+  }
+  function fixAutoDay(tag, dayKey) {
+    var e = entries.filter(function (x) { return x.auto === tag; })[0], day = dayOfKey(dayKey);
+    if (!e || e.day === day) return;
+    entries = entries.filter(function (x) { return x !== e; }); e.day = day; placeWin(e); afterChange();
   }
   function removeAuto(tag) {
     var gone = entries.filter(function (x) { return x.auto === tag; }).map(function (x) { return x.id; });
@@ -870,7 +882,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
       .catch(function () { setStatus("Refresh failed. Check the connection.", true); })
       .then(function () { btn.disabled = false; btn.textContent = "Refresh"; });
   };
-  window.AMIW = { todoWin: todoWin, autoWin: autoWin, removeAuto: removeAuto, getLists: function () { return listsState; }, saveLists: function (l) { listsState = l; save(); } };
+  window.AMIW = { todoWin: todoWin, autoWin: autoWin, fixAutoDay: fixAutoDay, removeAuto: removeAuto, getLists: function () { return listsState; }, saveLists: function (l) { listsState = l; save(); } };
   var sc = document.getElementById("chartScroll"); sc.scrollLeft = sc.scrollWidth;
 })();
 </script>
@@ -911,8 +923,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     var A = window.AMIW, k = nowIso(), g = l.log[k] || {}, tag = "habits-" + l.id + "-" + k;
     var all = l.items.length > 0 && l.items.every(function (i) { return g[i.id]; });
     if (!A) return;
-    if (all && !l.wins[k]) { l.wins[k] = true; A.autoWin("Completed all " + l.items.length + " habits (" + l.title + ")", tag); }
+    if (all && !l.wins[k]) { l.wins[k] = true; A.autoWin("Completed all " + l.items.length + " habits (" + l.title + ")", tag, k); }
     else if (!all && l.wins[k]) { delete l.wins[k]; A.removeAuto(tag); }
+    else if (all && l.wins[k]) A.fixAutoDay(tag, k);
   }
 
   function itemRows(l, edit) {
@@ -939,7 +952,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 '</div>';
     }
     h += itemRows(l, edit) + '<input class="li-add" data-a="add" data-l="' + l.id + '" placeholder="Add ' + (l.type === "habits" ? "a habit" : "an item") + ', press Enter" aria-label="Add and press Enter" maxlength="100">';
-    if (l.type === "habits" && l.wins[k]) h += '<div class="wonote">All done. Posted as a win today.</div>';
+    if (l.type === "habits" && l.wins[k]) h += '<div class="wonote">All done. Posted as a win for this day.</div>';
     if (edit) h += delRow(l);
     return h + "</div>";
   }
