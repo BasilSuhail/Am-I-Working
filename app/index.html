@@ -172,7 +172,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 .side { padding: 24px 16px 0; max-width: 760px; margin: 0 auto; }
 @media (min-width: 1100px) {
   .page { display: grid; grid-template-columns: 270px minmax(0, 760px); gap: 24px; justify-content: center; align-items: start; }
-  .side { position: sticky; top: 0; max-height: 100vh; overflow-y: auto; padding: 24px 0 24px 8px; margin: 0; max-width: none; }
+  .side { position: sticky; top: 0; max-height: 100vh; overflow-y: auto; padding: 24px 0 24px 8px; margin: 0; max-width: none; overscroll-behavior: contain; }
+  .cal { grid-column: 2; margin-left: 0; }
 }
 .lc { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; font-size: 14px; }
 .lc.pin { background: var(--tile); border-color: transparent; }
@@ -227,7 +228,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 @media (prefers-reduced-motion: reduce) { #refreshBtn.flash { animation: none; } }
 
 /* ---- calendar: sits to the right of the chart, same tiles as the chart ---- */
-.cal { --cw: 31.64px; margin: 28px 0 0; max-width: 262px; }
+.cal { --cw: 31.64px; margin: 28px 0 0 16px; max-width: 262px; }
 .cal .ttl { height: 20px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
 .cal .ttl button { all: unset; cursor: pointer; padding: 0 8px; font-size: 16px; color: var(--text-secondary); }
 .cal .ttl button:hover { color: var(--text-primary); }
@@ -244,8 +245,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
 @media (min-width: 1400px) {
   .page { grid-template-columns: minmax(270px, 1fr) 760px minmax(270px, 1fr); gap: 24px; justify-content: stretch; }
   .side { justify-self: end; width: 270px; }
-  .cal { position: absolute; left: calc(100% + 24px); top: 85px; width: 262px; margin: 0; }
-  .cal .ttl { position: absolute; top: -46px; left: 0; width: 100%; margin: 0; }
+  .cal { grid-column: 3; position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; width: 262px; margin: 0; padding: 40px 0 24px 0; overscroll-behavior: contain; }
 }
 .dayp { margin-top: 18px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .dayp .dh { display: flex; align-items: baseline; justify-content: space-between; padding: 10px 12px 8px; }
@@ -330,8 +330,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
   </section>
 
   <p class="note" id="savestate" role="status">Loading</p>
-<aside class="cal" id="cal" aria-label="Calendar"></aside>
 </div>
+<aside class="cal" id="cal" aria-label="Calendar"></aside>
 </div>
 <div class="sr" id="live" role="status" aria-live="polite"></div>
 <div class="toast" id="toast"><span id="toastMsg"></span><button class="bt" id="toastUndo">Undo</button></div>
@@ -1026,6 +1026,27 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--text-primar
     render();
   }
   document.addEventListener("amiw-ready", boot);
+
+  // One continuous page. The list and the calendar each scroll on their own. Scrolling the page
+  // (the centre) carries both of them by the same amount, so a column left part-way carries on
+  // from there. The page is made long enough to reach the end of the longest column.
+  var cols = [document.getElementById("side"), document.getElementById("cal")], pageEl = document.querySelector(".page"), lastY = window.scrollY;
+  function wide() { return window.matchMedia("(min-width: 1100px)").matches; }
+  function colsOn() { return cols.filter(function (c) { return c && (c !== cols[1] || window.matchMedia("(min-width: 1400px)").matches); }); }
+  function fit() {
+    if (!wide()) { pageEl.style.minHeight = ""; return; }
+    var extra = 0; colsOn().forEach(function (c) { extra = Math.max(extra, c.scrollHeight - c.clientHeight); });
+    var need = (window.innerHeight + extra) + "px";
+    if (pageEl.style.minHeight !== need) pageEl.style.minHeight = need;
+  }
+  window.addEventListener("scroll", function () {
+    var y = window.scrollY, d = y - lastY; lastY = y;
+    if (!wide() || !d) return;
+    colsOn().forEach(function (c) { c.scrollTop += d; });
+  }, { passive: true });
+  window.addEventListener("resize", fit);
+  if (window.ResizeObserver) { var ro = new ResizeObserver(fit); cols.forEach(function (c) { if (c) { ro.observe(c); Array.prototype.forEach.call(c.children, function (k) { ro.observe(k); }); } }); ro.observe(document.querySelector(".wrap")); }
+  setInterval(fit, 2000);
 })();
 </script>
 <script>
