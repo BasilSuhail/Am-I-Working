@@ -21,6 +21,36 @@ const PAGE = fs.readFileSync(path.join(__dirname, "index.html"));
 const MAX_BODY = 2 * 1024 * 1024;
 const cal = require("./calendar.js");
 const SETTINGS_FILE = path.join(DATA_DIR, "settings.json");
+// Journal: plain .md files in a folder you own (default ~/.am-i-working/journal, set AMIW_JOURNAL to use your own).
+const JDIR = path.resolve(process.env.AMIW_JOURNAL || path.join(DATA_DIR, "journal"));
+const JPAGE = path.join(__dirname, "journal.html");
+fs.mkdirSync(JDIR, { recursive: true, mode: 0o700 });
+function jpath(p) {
+  if (typeof p !== "string" || !/\.md$/i.test(p) || p.includes("..") || p.startsWith("/") || p.includes("\0") || p.includes("\\") || p.split("/").some((x) => x.startsWith("."))) throw new Error("bad path");
+  const full = path.resolve(JDIR, p);
+  if (!full.startsWith(JDIR + path.sep)) throw new Error("bad path");
+  return full;
+}
+function jlist(dir, rel, out) {
+  for (const d of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (d.name.startsWith(".") || out.length >= 5000) continue;
+    const r = rel ? rel + "/" + d.name : d.name;
+    if (d.isDirectory()) jlist(path.join(dir, d.name), r, out);
+    else if (/\.md$/i.test(d.name)) { const st = fs.statSync(path.join(dir, d.name)); out.push({ path: r, mtime: st.mtimeMs, size: st.size }); }
+  }
+  return out;
+}
+// Nothing is ever deleted. Before an overwrite, the old text is kept in .history (at most one copy per 10 minutes per file).
+function jsnapshot(full, rel) {
+  try {
+    const hdir = path.join(JDIR, ".history", path.dirname(rel));
+    fs.mkdirSync(hdir, { recursive: true });
+    const base = path.basename(rel, ".md");
+    const last = fs.readdirSync(hdir).filter((n) => n.startsWith(base + ".")).sort().pop();
+    const lastT = last ? Number(last.slice(base.length + 1).split(".")[0]) : 0;
+    if (Date.now() - lastT > 600000) fs.copyFileSync(full, path.join(hdir, base + "." + Date.now() + ".md"));
+  } catch (e) {}
+}
 
 fs.mkdirSync(DATA_DIR, { recursive: true, mode: 0o700 });
 const store = cal.createStore(DATA_DIR);
@@ -150,6 +180,7 @@ function send(res, code, body, type) {
 const server = http.createServer(async (req, res) => {
   const full = req.url || "/", url = full.split("?")[0], force = /[?&]refresh=1(&|$)/.test(full);
   if (req.method === "GET" && (url === "/" || url === "/index.html")) return send(res, 200, PAGE, "text/html; charset=utf-8");
+  if (req.method === "GET" && url === "/journal") return send(res, 200, fs.readFileSync(JPAGE), "text/html; charset=utf-8");
   if (url === "/healthz") return send(res, 200, '{"ok":true}');
   if (url.startsWith("/api/")) {
     if (req.headers["x-amiw"] !== "1") return send(res, 403, '{"error":"forbidden"}');
@@ -172,6 +203,29 @@ const server = http.createServer(async (req, res) => {
       if (!(f < t) || t - f > 400 * 864e5) return send(res, 400, '{"error":"bad range"}');
       const pad = 864e5; // events are matched in UTC, the page sorts them into local days
       return send(res, 200, JSON.stringify({ events: store.window(readSettings().calendars.map((c) => c.id), f - pad, t + pad), settings: publicSettings() }));
+    }
+    if (url === "/api/journal/files" && req.method === "GET") return send(res, 200, JSON.stringify({ files: jlist(JDIR, "", []), root: JDIR.replace(os.homedir(), "~") }));
+    if (url === "/api/journal/file" && req.method === "GET") {
+      try {
+        const rel = new URL(full, "http://x").searchParams.get("p"), f = jpath(rel), st = fs.statSync(f);
+        return send(res, 200, JSON.stringify({ path: rel, content: fs.readFileSync(f, "utf8"), mtime: st.mtimeMs }));
+      } catch (e) { return send(res, 404, '{"error":"not found"}'); }
+    }
+    if (url === "/api/journal/file" && req.method === "PUT") {
+      return readBody(req, res, (o) => {
+        try {
+          if (typeof o.content !== "string") throw new Error("bad content");
+          const f = jpath(o.path);
+          fs.mkdirSync(path.dirname(f), { recursive: true });
+          if (fs.existsSync(f)) {
+            const st = fs.statSync(f);
+            if (typeof o.base === "number" && st.mtimeMs > o.base + 2 && !o.force) return send(res, 409, JSON.stringify({ error: "changed on disk", mtime: st.mtimeMs }));
+            if (fs.readFileSync(f, "utf8") !== o.content) jsnapshot(f, o.path);
+          } else if (o.createOnly !== true && o.base != null) throw new Error("file vanished");
+          const tmp = f + ".tmp"; fs.writeFileSync(tmp, o.content, { mode: 0o600 }); fs.renameSync(tmp, f);
+          send(res, 200, JSON.stringify({ ok: true, mtime: fs.statSync(f).mtimeMs }));
+        } catch (e) { send(res, 400, JSON.stringify({ error: String(e.message || e) })); }
+      });
     }
     if (url === "/api/state" && req.method === "GET") return send(res, 200, JSON.stringify(readState()));
     if (url === "/api/commits" && req.method === "GET") return send(res, 200, JSON.stringify(await commits(force)));

@@ -60,6 +60,17 @@ middle, and your calendar on the right. Everything is saved the moment you chang
 
 ![Hovering a day](docs/commits.png)
 
+## The journal
+
+Click **Journal** next to the gear (or open `/journal`). It is a small writing space for Markdown files, kept as plain `.md` files on your computer, so any other editor can open them.
+
+- **Left:** your files by folder, newest first, with search. **Today** opens (or starts) `daily/<date>.md`. **New file** makes one. **Import .md** (or drag files onto the page) copies Markdown files in. An import never overwrites a file.
+- **Middle:** tabs, a toolbar, and the text next to a live preview. **Time**, **Date** and **+ Entry** stamp the current time, date, or a new `## Thu 12 Nov 2026 · 21:14` heading. `Cmd/Ctrl+;` types the time. Tick checkboxes in the preview to tick them in the file.
+- **Bottom:** the file path, word count, when it was last updated, and whether it is saved. It saves by itself.
+- Nothing is ever deleted. Before a file is overwritten the old text is kept in `.history/`. If a file is changed by another program while you have it open, you choose to keep yours or load theirs.
+- Files live in `~/.am-i-working/journal`. Set `AMIW_JOURNAL` to use another folder.
+- Theme: the journal has its own theme menu, with an extra **Classic Mac** look.
+
 ## Settings (the gear button)
 
 Click the gear next to **Refresh**. Everything below is saved on your computer.
@@ -99,6 +110,7 @@ To change it, set `AMIW_DATA`.
 | `PORT` | 8788 | Port the page runs on |
 | `HOST` | 127.0.0.1 | Only this computer can open it |
 | `AMIW_DATA` | `~/.am-i-working` | Where data is saved |
+| `AMIW_JOURNAL` | `<AMIW_DATA>/journal` | Where the journal's `.md` files are kept |
 | `GITHUB_TOKEN`, `GITHUB_LOGIN` | none | Fill the commits bar (or set them under the gear) |
 | `CALENDAR_SYNC_MINUTES` | 5 | How often calendar links are re-read |
 | `COMMITS_TTL_HOURS` | 24 | How often commits are re-fetched |
@@ -111,8 +123,9 @@ To change it, set `AMIW_DATA`.
 
 - `app/index.html`: the whole page
 - `app/server.js`: the small server, no extra packages needed
+- `app/journal.html`: the journal page
 - `app/calendar.js`: reads calendar links and works out the events for each day
-- `test/`: automatic tests for the calendar code
+- `test/`: automatic tests for the calendar and journal code
 - `design/`: early design samples with made-up data
 - `docs/`: the pictures above (personal text blurred)
 
