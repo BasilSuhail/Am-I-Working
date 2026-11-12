@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Journal: Markdown files with dates and times, split preview, import, autosave, history kept. Button next to the gear.
 - Versioned downloads: each tagged version is published as a zip on the Releases page.
 
 ## 1.0.0
